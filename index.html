@@ -318,11 +318,41 @@
     .todayFeedItem.clickableTimer:hover{background:rgba(37,168,238,.08)}
     .runningPulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:#25a8ee;margin-right:6px;animation:todayPulse 1.2s infinite}
     @keyframes todayPulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+    /* Level-up celebration */
+    .levelUpOverlay{
+      position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.48);backdrop-filter:blur(3px);overflow:hidden
+    }
+    .levelUpBox{
+      position:relative;z-index:3;width:min(520px,calc(100% - 28px));padding:24px;
+      border:2px solid #f2c94c;border-radius:22px;background:linear-gradient(180deg,#1b1b20,#111115);
+      text-align:center;box-shadow:0 28px 100px rgba(0,0,0,.65),0 0 45px rgba(242,201,76,.18)
+    }
+    .levelUpBox h2{margin:4px 0 8px;font-size:32px}
+    .levelUpBox .levelBig{font-size:54px;font-weight:1000;line-height:1;color:#f2c94c;margin:12px 0}
+    .fireworkParticle{
+      position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:50%;
+      background:var(--fw,#f2c94c);transform:translate(-50%,-50%);
+      animation:fwBurst 1.25s ease-out forwards
+    }
+    @keyframes fwBurst{
+      0%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+      100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.35)}
+    }
+
+    /* To-do list */
+    .todoGroups{display:grid;gap:14px}
+    .todoGroup{border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(255,255,255,.012)}
+    .todoItem{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--card2)}
+    .todoItem.done{opacity:.58}
+    .todoTitle{font-weight:900}
+
     .todayActions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
     .todayTimeline{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.012)}
-    .todayHour{position:relative;height:54px;border-bottom:1px solid rgba(255,255,255,.10);padding-left:58px}
+    .todayHour{position:relative;height:110px;border-bottom:1px solid rgba(255,255,255,.12);padding-left:78px}
     .todayHour:last-child{border-bottom:0}
-    .todayHourLabel{position:absolute;left:8px;top:7px;color:var(--muted);font-size:12px}
+    .todayHourLabel{position:absolute;left:8px;top:9px;color:var(--muted);font-size:12px;font-weight:800}
     .todayEvent{position:absolute;left:64px;right:8px;border:2px solid currentColor;border-radius:11px;padding:7px 9px;overflow:hidden;z-index:2;background:#17171b}
     .todayEvent.activity{color:#25a8ee;background:rgba(37,168,238,.18)}
     .todayEvent.future{color:#f29ab8;background:rgba(242,154,184,.18)}
@@ -392,7 +422,36 @@
     canvas{max-width:100%}
     .legendList{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
     .legendItem{display:flex;gap:8px;align-items:center}
-  </style>
+  
+    body.lightMode{--bg:#f4f5f7;--panel:#fff;--card:#fff;--card2:#f7f7f9;--text:#17171b;--muted:#666b75;--line:#d8dbe2;--shadow:0 14px 40px rgba(0,0,0,.10)}
+    .nutChip{font-weight:950;border:1px solid var(--line);border-radius:999px;padding:6px 9px;background:var(--card2)}
+    .donkeyNut{color:#ff5b5b;border-color:#8d3030}
+    .specialMission{border-left:6px solid #eb5757!important;background:linear-gradient(90deg,rgba(235,87,87,.12),var(--card2))!important}
+    .feedCard{border:1px solid var(--line);border-radius:16px;padding:13px;background:var(--card)}
+    .verifiedBadge{color:#52d273;font-weight:950}.hardcoreBadge{color:#eb5757;font-weight:950}
+    .mediaPreview{max-width:100%;max-height:260px;border-radius:12px;border:1px solid var(--line);margin-top:8px}
+    .timelineEvent{border-left:5px solid #52d273}
+
+    .appointmentCard{border:1px solid var(--line);border-radius:16px;padding:13px;background:var(--card)}
+    .appointmentCard.done{opacity:.7}
+    .talkPoint{display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+    .talkPoint:last-child{border-bottom:0}
+    .talkPointText.done{text-decoration:line-through;opacity:.6}
+
+    .collectionNav{display:flex;gap:8px;flex-wrap:wrap}
+    .collectionNav .btn.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+    .collectionPages{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+    .collectionPages .btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .shopGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .shopItem{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--card2)}
+    .shopItem.locked{opacity:.58}
+    .armorPreview{font-size:48px;line-height:1;margin:8px 0}
+    .trimmedPreview{text-shadow:0 0 14px #f2c94c}
+    .suggestionWrap{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+    .suggestionChip{cursor:pointer;border:1px solid var(--line);background:var(--card2);border-radius:999px;padding:6px 9px;font-size:12px}
+    .suggestionChip:hover{border-color:var(--accent)}
+    .forumThread{border:1px solid var(--line);border-radius:14px;padding:11px;background:var(--card2)}
+</style>
 </head>
 
 <body>
@@ -415,6 +474,8 @@
         <button class="btn small ghost" id="notesBtnTop">Notes</button>
         <button class="btn small ghost" id="exportBtn">Export</button>
         <button class="btn small ghost" id="importBtn">Import</button>
+        <button class="btn small ghost" id="copyDataBtn">Copy Data</button>
+        <button class="btn small ghost" id="pasteDataBtn">Paste Data</button>
         <button class="btn small ghost danger" id="resetBtn">Reset</button>
       </div>
     </div>
@@ -656,6 +717,7 @@ function openMainskillEditor(existingCode=null){
     state.missions=state.missions.filter(x=>x.mainCode!==code);
     state.habits=state.habits.filter(x=>x.mainCode!==code);
     state.goals=state.goals.filter(x=>x.mainCode!==code);
+    state.todos=state.todos.filter(x=>x.mainCode!==code);
     state.trophies=state.trophies.filter(x=>x.mainCode!==code);
     state.priorities=state.priorities.filter(x=>x.mainCode!==code && !nodeIds.has(x.id));
     delete state.skills[code]; delete SKILL_COLOR[code];
@@ -717,7 +779,7 @@ function defaultState(){
   }
 
   return {
-    version: 7,
+    version: 12,
     profile: { username: "Player", note: "" },
 
     skills,
@@ -733,6 +795,14 @@ function defaultState(){
     purchased: [],
     checklists: [],
     priorities: [],
+    todos: [],
+    completionEvents: [],
+    appointments: [],
+    budgetAllocations: [],
+    shop: {ownedCosmetics:[], equippedCosmetic:"", trimmedCosmetics:[]},
+    multiplayer: {threads:[], lfg:[], guilds:[], feedback:[]},
+    economy: {monkeyNuts:0, donkeyNuts:0},
+    account: {membership:"BETA", hardcore:false, theme:"dark"},
     customMainskills: MAINSKILLS.map(m=>({code:m.code,name:m.name,color:SKILL_COLOR[m.code]||"#7d8590"})),
 
     notes: {},
@@ -790,6 +860,19 @@ function loadState(){
     st.purchased ||= [];
     st.checklists ||= [];
     st.priorities ||= [];
+    st.todos ||= [];
+    st.completionEvents ||= [];
+    st.appointments ||= [];
+    for (const a of st.appointments){ a.talkingPoints ||= []; a.notes ||= ""; a.date ||= ""; a.time ||= ""; a.location ||= ""; a.completed=!!a.completed; }
+    st.budgetAllocations ||= [];
+    st.shop ||= {ownedCosmetics:[],equippedCosmetic:"",trimmedCosmetics:[]};
+    st.shop.ownedCosmetics ||= [];
+    st.shop.trimmedCosmetics ||= [];
+    st.shop.equippedCosmetic ||= "";
+    st.multiplayer ||= {threads:[],lfg:[],guilds:[],feedback:[]};
+    st.multiplayer.threads ||= []; st.multiplayer.lfg ||= []; st.multiplayer.guilds ||= []; st.multiplayer.feedback ||= [];
+    st.economy ||= {monkeyNuts:0,donkeyNuts:0};
+    st.account ||= {membership:"BETA",hardcore:false,theme:"dark"};
     st.customMainskills ||= null;
     st.notes ||= {};
     st.xpLog ||= [];
@@ -815,6 +898,8 @@ function loadState(){
 
     // Existing missions/habits gain their own optional internal checklist.
     for (const x of [...st.missions, ...st.habits]) x.checklist ||= [];
+    for (const h of st.habits){ h.frequency ||= "daily"; h.completions ||= []; }
+    for (const ms of st.missions){ ms.special=!!ms.special; ms.completedOnce=!!ms.completedOnce; }
 
     // Existing checklist objectives gain an optional mainskill assignment.
     for (const c of st.checklists){
@@ -1014,11 +1099,86 @@ function logXp(mainCode, delta, day=todayKey()){
   if (!delta) return;
   state.xpLog.push({ day, mainCode, delta });
 }
+
+function addMonkeyNuts(amount){
+  state.economy ||= {monkeyNuts:0,donkeyNuts:0};
+  state.economy.monkeyNuts=Math.max(0,Math.round(((state.economy.monkeyNuts||0)+(Number(amount)||0))*100)/100);
+}
+function dateFromKey(k){const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d)}
+function mondayKey(k){const d=dateFromKey(k),n=(d.getDay()+6)%7;d.setDate(d.getDate()-n);return todayKey(d)}
+function habitReward(h,day=todayKey()){
+  h.frequency||="daily";h.completions||=[];
+  const done=[...new Set(h.completions)].sort();
+  if(h.frequency==="daily"){
+    if(done.includes(day))return 0;
+    let streak=0,d=dateFromKey(day);d.setDate(d.getDate()-1);
+    while(done.includes(todayKey(d))){streak++;d.setDate(d.getDate()-1)}
+    const n=streak+1;
+    if(n===1)return 1;if(n<=7)return 1.25;if(n<=14)return 1.5;if(n<=21)return 1.75;return 2;
+  }
+  if(h.frequency==="weekly"){
+    const wk=mondayKey(day);if(done.some(k=>mondayKey(k)===wk))return 0;
+    const d=dateFromKey(wk);d.setDate(d.getDate()-7);
+    return done.some(k=>mondayKey(k)===todayKey(d))?2.5:1;
+  }
+  const mk=day.slice(0,7);if(done.some(k=>k.slice(0,7)===mk))return 0;
+  const d=dateFromKey(day);d.setMonth(d.getMonth()-1);
+  return done.some(k=>k.slice(0,7)===todayKey(d).slice(0,7))?5:1;
+}
+function recordCompletionEvent(o){
+  const ev={id:cryptoId(),kind:o.kind,title:o.title,mainCode:o.mainCode||"",nodeId:o.nodeId||null,xp:Number(o.xp)||0,sourceId:o.sourceId||"",day:o.day||todayKey(),special:!!o.special,createdAt:new Date().toISOString(),attachment:null,link:"",upvotes:0,downvotes:0,myVote:0,validated:false,donkeyAwarded:false};
+  state.completionEvents.unshift(ev);return ev;
+}
+function validateCompletionEvent(ev){
+  if(!state.account?.hardcore)return;
+  ev.validated=(ev.upvotes||0)-(ev.downvotes||0)>=5;
+  if(ev.validated&&!ev.donkeyAwarded){state.economy.donkeyNuts=(state.economy.donkeyNuts||0)+1;ev.donkeyAwarded=true}
+}
+function completeHabitV10(h,day=todayKey()){
+  const xp=habitReward(h,day);if(!xp)return alert("Already completed for this period.");
+  h.completions.push(day);h.points=(h.points||0)+1;
+  addXpFlow(h.mainCode,h.nodeId,xp,day);
+  recordCompletionEvent({kind:"Habit",title:h.title,mainCode:h.mainCode,nodeId:h.nodeId,xp,sourceId:h.id,day});
+  saveState();render();
+}
+function completeSpecialMission(ms,day=todayKey()){
+  if(ms.completedOnce)return alert("Special missions can only be completed once.");
+  ms.completedOnce=true;ms.points=(ms.points||0)+1;
+  addXpFlow(ms.mainCode,ms.nodeId,2,day);
+  recordCompletionEvent({kind:"Special Mission",title:ms.title,mainCode:ms.mainCode,nodeId:ms.nodeId,xp:2,sourceId:ms.id,day,special:true});
+  saveState();render();
+}
 function addXpFlow(mainCode, nodeId, delta, dayOverride=null){
   delta = Number(delta)||0;
   if (!delta) return;
-
+  addMonkeyNuts(delta);
   const day = dayOverride || todayKey();
+  const beforeLevels = new Map();
+
+  function rememberMain(code){
+    if(!code) return;
+    beforeLevels.set(`main:${code}`, levelFromTotalXp(state.skills[code]?.totalXp||0));
+  }
+  function rememberNode(id){
+    if(!id || !state.subskills[id]) return;
+    beforeLevels.set(`node:${id}`, levelFromTotalXp(state.subskills[id]?.totalXp||0));
+  }
+
+  rememberMain(mainCode);
+  let rememberId=nodeId;
+  while(rememberId){
+    rememberNode(rememberId);
+    rememberId=state.subskills[rememberId]?.parentId||null;
+  }
+
+  const sourceNode = nodeId ? state.subskills[nodeId] : null;
+  if(sourceNode){
+    for(const linkedCode of (sourceNode.linkedMainCodes||[])) rememberMain(linkedCode);
+    for(const linkedId of (sourceNode.linkedSubskillIds||[])){
+      rememberNode(linkedId);
+      rememberMain(state.subskills[linkedId]?.mainCode);
+    }
+  }
 
   state.skills[mainCode] ||= { totalXp: 0 };
   state.skills[mainCode].totalXp = Math.max(0, (state.skills[mainCode].totalXp||0) + delta);
@@ -1033,11 +1193,8 @@ function addXpFlow(mainCode, nodeId, delta, dayOverride=null){
 
   logXp(mainCode, delta, day);
 
-  saveState();
-
   // Cross-links: a subskill can also contribute XP to another mainskill
   // or to specifically linked subskills.
-  const sourceNode = nodeId ? state.subskills[nodeId] : null;
   if (sourceNode){
     for (const linkedCode of (sourceNode.linkedMainCodes||[])){
       if (linkedCode === mainCode) continue;
@@ -1055,6 +1212,62 @@ function addXpFlow(mainCode, nodeId, delta, dayOverride=null){
     }
   }
 
+  saveState();
+
+  if(delta>0){
+    const leveled=[];
+    for(const [key,before] of beforeLevels.entries()){
+      if(key.startsWith("main:")){
+        const code=key.slice(5);
+        const after=levelFromTotalXp(state.skills[code]?.totalXp||0);
+        if(after>before) leveled.push({kind:"Mainskill",name:`${code} — ${mainskillName(code)}`,level:after,color:SKILL_COLOR[code]||"#f2c94c"});
+      }else{
+        const id=key.slice(5);
+        const node=state.subskills[id];
+        if(!node) continue;
+        const after=levelFromTotalXp(node.totalXp||0);
+        if(after>before) leveled.push({kind:"Subskill",name:node.name,level:after,color:SKILL_COLOR[node.mainCode]||"#f2c94c"});
+      }
+    }
+    if(leveled.length) showLevelUpCelebration(leveled);
+  }
+}
+
+
+function showLevelUpCelebration(items){
+  document.querySelector(".levelUpOverlay")?.remove();
+  const top=items[0];
+  const overlay=el(`
+    <div class="levelUpOverlay">
+      <div class="levelUpBox">
+        <div class="kicker">Congratulations!</div>
+        <h2>LEVEL UP</h2>
+        <div class="levelBig">${top.level}</div>
+        <div class="title">${escapeHtml(top.name)}</div>
+        ${items.length>1?`<div class="muted" style="margin-top:8px">${items.length-1} other connected skill${items.length>2?"s":""} also leveled up.</div>`:""}
+        <button class="btn ok" style="margin-top:16px" id="closeLevelUp">Awesome</button>
+      </div>
+    </div>
+  `);
+  document.body.appendChild(overlay);
+  const colors=["#f2c94c","#ff6b6b","#66a3ff","#52d273","#b79cff","#ff9ad5"];
+  for(let burst=0;burst<5;burst++){
+    const cx=10+Math.random()*80, cy=8+Math.random()*60;
+    for(let i=0;i<18;i++){
+      const a=(Math.PI*2*i)/18 + Math.random()*.2;
+      const d=70+Math.random()*150;
+      const p=document.createElement("span");
+      p.className="fireworkParticle";
+      p.style.left=cx+"%"; p.style.top=cy+"%";
+      p.style.setProperty("--dx",`${Math.cos(a)*d}px`);
+      p.style.setProperty("--dy",`${Math.sin(a)*d}px`);
+      p.style.setProperty("--fw",colors[(i+burst)%colors.length]);
+      p.style.animationDelay=(burst*.1)+"s";
+      overlay.appendChild(p);
+    }
+  }
+  overlay.querySelector("#closeLevelUp").onclick=()=>overlay.remove();
+  setTimeout(()=>overlay.remove(),7000);
 }
 
 /* =========================
@@ -1126,6 +1339,19 @@ function openNotesModalFor(meta){
 
   body.querySelector("#noteText").value = existing;
 
+
+  const suggestions=(SUBSKILL_SUGGESTIONS[mainCode]||[]).filter(s=>!nodesForMain(mainCode).some(n=>n.name.toLowerCase()===s.toLowerCase()));
+  const datalist=body.querySelector("#subskillSuggestions");
+  for(const s of suggestions){const o=document.createElement("option");o.value=s;datalist.appendChild(o);}
+  const chips=body.querySelector("#suggestionChips");
+  if(suggestions.length){
+    suggestions.slice(0,8).forEach(s=>{
+      const b=el(`<button type="button" class="suggestionChip">${escapeHtml(s)}</button>`);
+      b.onclick=()=>{body.querySelector("#name").value=s;body.querySelector("#name").focus();};
+      chips.appendChild(b);
+    });
+  }else chips.appendChild(el(`<span class="muted">No preset suggestions for this category — enter your own.</span>`));
+
   body.querySelector("#cancel").onclick = closeModal;
   body.querySelector("#save").onclick = ()=>{
     const txt = body.querySelector("#noteText").value || "";
@@ -1157,22 +1383,67 @@ function openNotesForCurrentPage(){ openNotesModalFor(currentPageNoteMeta()); }
 ========================= */
 const TABS = [
   { id:"PROFILE", label:"PROFILE" },
-  { id:"TODAY", label:"TODAY" },
-  { id:"TOMORROW", label:"TOMORROW" },
-  { id:"MAINSKILLS", label:"MAINSKILLS" },
-  { id:"SKILLSMAP", label:"SKILLSMAP" },
-  { id:"MISSIONS", label:"MISSIONS" },
-  { id:"HABITS", label:"HABITS" },
-  { id:"GOALS", label:"GOALS" },
-  { id:"CHECKLISTS", label:"CHECKLISTS" },
-  { id:"PRIORITIES", label:"PRIORITIES" },
-  { id:"CALENDAR", label:"CALENDAR" },
-  { id:"STATS", label:"STATS" },
-  { id:"INVESTMENTS", label:"INVESTMENTS"},
-  { id:"NOTES", label:"NOTES"},
+  { id:"COLLECTIONS", label:"COLLECTIONS" },
+  { id:"NOTES", label:"NOTES" },
 ];
 
+
+const COLLECTIONS = {
+  MAIN: {
+    label:"MAIN",
+    pages:[
+      ["TODAY","Today"],["TOMORROW","Tomorrow"],["TODOLIST","To-do"],
+      ["PRIORITIES","Priorities"],["GOALS","Goals"],["CHECKLISTS","Checklists"]
+    ]
+  },
+  SKILLING: {
+    label:"SKILLING",
+    pages:[
+      ["MAINSKILLS","Mainskills"],["SKILLSMAP","Skillsmap"],["MISSIONS","Missions"],
+      ["HABITS","Habits"],["STATS","Statistics"]
+    ]
+  },
+  SCHEDULE: {
+    label:"SCHEDULE",
+    pages:[["CALENDAR","Calendar"],["APPOINTMENTS","Appointments"]]
+  },
+  BODY: {
+    label:"BODY",
+    pages:[["DIET","Diet"],["FITNESS","Fitness"]]
+  },
+  MONEY: {
+    label:"MONEY",
+    pages:[["INVESTMENTS","Investments"],["BUDGET","Budget allocation"]]
+  },
+  MULTIPLAYER: {
+    label:"MULTIPLAYER",
+    pages:[["FEED","Feed"],["FORUMS","Forums"],["LFG","LFG"],["GUILDS","Guilds"],["FEEDBACK","Dev feedback"]]
+  },
+  SHOP: {
+    label:"SHOP",
+    pages:[["SHOP","Shop"]]
+  }
+};
+
+function setCollection(name){
+  if(!COLLECTIONS[name]) return;
+  state.ui.collection=name;
+  const pages=COLLECTIONS[name].pages;
+  if(!pages.some(([id])=>id===state.ui.collectionPage)) state.ui.collectionPage=pages[0][0];
+  if(state.ui.collectionPage==="TODAY") state.ui.selectedDay=todayKey();
+  if(state.ui.collectionPage==="TOMORROW") state.ui.selectedDay=tomorrowKey();
+  saveState(); render();
+}
+function setCollectionPage(id){
+  state.ui.collectionPage=id;
+  if(id==="TODAY") state.ui.selectedDay=todayKey();
+  if(id==="TOMORROW") state.ui.selectedDay=tomorrowKey();
+  if(id==="MAINSKILLS"){state.ui.view="LIST";state.ui.selectedNode=null;}
+  saveState(); render();
+}
+
 function setTab(id){
+  if (id === "COLLECTIONS" && !COLLECTIONS[state.ui.collection]){state.ui.collection="MAIN";state.ui.collectionPage="TODAY";}
   if (id === "TODAY") state.ui.selectedDay = todayKey();
   if (id === "TOMORROW") state.ui.selectedDay = tomorrowKey();
   if (id === "MAINSKILLS"){
@@ -1506,6 +1777,7 @@ function openEditSubskillModal(nodeId){
       <div class="row wrap">
         <button class="btn ok" id="addChild">+ Child subskill</button>
         <button class="btn primary" id="linkSkill">Link skill</button>
+        <button class="btn primary" id="addTodo">+ To-do</button>
         <button class="btn ok" id="addMission">+ Mission</button>
         <button class="btn ok" id="addHabit">+ Habit</button>
         <button class="btn ok" id="addGoal">+ Goal</button>
@@ -1542,6 +1814,7 @@ function openEditSubskillModal(nodeId){
     state.missions = state.missions.filter(x=>!descendants.has(x.nodeId));
     state.habits = state.habits.filter(x=>!descendants.has(x.nodeId));
     state.goals = state.goals.filter(x=>!descendants.has(x.nodeId));
+    state.todos = state.todos.filter(x=>!descendants.has(x.nodeId));
     if (descendants.has(state.ui.selectedNode)) state.ui.selectedNode = null;
     saveState();
     closeModal();
@@ -1575,6 +1848,7 @@ function openEditSubskillModal(nodeId){
       for (const m of state.missions){ if (m.nodeId === oldId) m.nodeId = newId; }
       for (const h of state.habits){ if (h.nodeId === oldId) h.nodeId = newId; }
       for (const g of state.goals){ if (g.nodeId === oldId) g.nodeId = newId; }
+      for (const t of state.todos){ if (t.nodeId === oldId){ t.nodeId = newId; t.title = newName; } }
 
       if (state.ui.selectedNode === oldId) state.ui.selectedNode = newId;
 
@@ -1592,6 +1866,43 @@ function openEditSubskillModal(nodeId){
   };
 
   body.querySelector("#addChild").onclick = ()=>{ closeModal(); openAddSubskillModal(n.mainCode, n.id); };
+  body.querySelector("#addTodo").onclick=()=>{
+    const todoBody=el(`
+      <div class="grid" style="gap:10px">
+        <div class="chip">To-do: <b>${escapeHtml(n.name)}</b></div>
+        <div class="field"><label class="muted">List</label>
+          <select id="todoWhen">
+            <option value="today">Today</option>
+            <option value="tomorrow">Tomorrow</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="field" id="customWrap" style="display:none">
+          <label class="muted">Custom list name</label><input id="customLabel" placeholder="e.g. Weekend / Exam prep">
+          <label class="muted" style="margin-top:8px">Optional date</label><input id="customDate" type="date">
+        </div>
+        <div class="row wrap"><button class="btn ok" id="saveTodo">Add to list</button><button class="btn" id="cancelTodo">Cancel</button></div>
+        <div class="hint">Checking this item off in TODOLIST gives +1 XP to this subskill and its XP flow.</div>
+      </div>
+    `);
+    const when=todoBody.querySelector("#todoWhen");
+    const wrap=todoBody.querySelector("#customWrap");
+    when.onchange=()=>wrap.style.display=when.value==="custom"?"flex":"none";
+    todoBody.querySelector("#cancelTodo").onclick=closeModal;
+    todoBody.querySelector("#saveTodo").onclick=()=>{
+      const type=when.value;
+      const dueDay=type==="today"?todayKey():type==="tomorrow"?tomorrowKey():(todoBody.querySelector("#customDate").value||"");
+      const customLabel=type==="custom"?(todoBody.querySelector("#customLabel").value.trim()||"Custom"):"";
+      state.todos.push({
+        id:cryptoId(),nodeId:n.id,mainCode:n.mainCode,title:n.name,
+        listType:type,dueDay,customLabel,done:false,xpAwarded:false,
+        createdAt:new Date().toISOString(),completedAt:""
+      });
+      saveState();closeModal();render();
+    };
+    openModal("Add to To-do list",todoBody);
+  };
+
   body.querySelector("#linkSkill").onclick = ()=>{
     const others = Object.values(state.subskills).filter(s=>s.id!==n.id);
     const linkBody = el(`
@@ -1680,6 +1991,27 @@ function openNodePlusMenu(mainCode, nodeId){
   openModal("Add New", body);
 }
 
+
+const SUBSKILL_SUGGESTIONS = {
+  SOC:["Conversation","Public Speaking","Networking","Listening","Humor","Conflict Resolution","Friendships","Social Confidence"],
+  MEN:["Focus","Meditation","Stress Management","Memory","Discipline","Emotional Regulation","Learning","Problem Solving"],
+  FIN:["Budgeting","Saving","Investing","Purchases","Debt Management","Taxes","Negotiation","Financial Planning"],
+  PHY:["Strength","Cardio","Mobility","Endurance","Running","Swimming","Boxing","Sports"],
+  LEA:["Decision Making","Delegation","Planning","Accountability","Team Building","Negotiation","Mentoring","Initiative"],
+  APP:["Style","Hair","Skin Care","Grooming","Posture","Fashion","Dental Care","Presentation"],
+  DIE:["Meal Prep","Protein Intake","Hydration","Calorie Tracking","Healthy Eating","Cooking","Micronutrients","Food Discipline"],
+  SCH:["Studying","Assignments","Exams","Reading","Note Taking","Research","Presentations","Attendance"],
+  HOM:["Cleaning","Laundry","Organization","Repairs","Cooking","Decluttering","Home Maintenance","Shopping"],
+  CAR:["CV","Interviewing","Networking","Certifications","Job Search","Professional Skills","Career Planning","Workplace Communication"],
+  SID:["Freelancing","Reselling","Content Creation","Sales","Marketing","Client Work","E-commerce","Automation"],
+  BUS:["Sales","Marketing","Operations","Finance","Product","Customer Support","Strategy","Hiring"],
+  HOB:["Gaming","Music","Art","Photography","Writing","Travel","Collecting","Crafting"],
+  WOR:["Productivity","Punctuality","Communication","Quality","Safety","Teamwork","Planning","Professionalism"],
+  DAT:["Dating Profile","Flirting","First Dates","Communication","Confidence","Planning Dates","Boundaries","Relationship Skills"],
+  REC:["Sleep","Rest Days","Stretching","Recovery Walks","Sauna","Massage","Cold Exposure","Fatigue Management"],
+  SPI:["Reflection","Gratitude","Prayer","Meditation","Values","Purpose","Nature","Journaling"]
+};
+
 function openAddSubskillModal(mainCode, parentId){
   const parentName = parentId ? (nodeById(parentId)?.name || "(unknown)") : "(main)";
   const body = el(`
@@ -1687,7 +2019,9 @@ function openAddSubskillModal(mainCode, parentId){
       <div class="chip">Add subskill under <b>${escapeHtml(mainCode)} — ${escapeHtml(mainskillName(mainCode))}</b> / ${escapeHtml(parentName)}</div>
       <div class="field">
         <label class="muted">Subskill name</label>
-        <input id="name" placeholder="e.g. Public Speaking" />
+        <input id="name" placeholder="e.g. Public Speaking" list="subskillSuggestions" />
+        <datalist id="subskillSuggestions"></datalist>
+        <div class="suggestionWrap" id="suggestionChips"></div>
       </div>
       <div class="field">
         <label class="muted">Description (optional)</label>
@@ -1951,7 +2285,7 @@ function renderMainTreeGraph(mainCode, mountEl){
           if (act==="priority"){
             togglePriority("habit",h.id,h.title,h.mainCode,{activeTab:"HABITS"});
           }
-          else if (act==="finish"){ finishHabit(h); render(); }
+          else if (act==="finish"){ completeHabitV10(h); }
           else if (act==="undo"){ undoHabit(h); render(); }
           else if (act==="trophy"){
             addToTrophyRoom({ mainCode:h.mainCode, title:h.title, desc:h.desc, kind:"habit", startAt:h.createdAt, finishedAt:new Date().toISOString(), dueISO:h.dueISO||"" });
@@ -2482,19 +2816,23 @@ function deleteTodayItem(type,id){
   saveState();render();
 }
 function todayTimelineHtml(){
-  const hours=[];
-  for(let h=0;h<=23;h++) hours.push(`<div class="todayHour"><span class="todayHourLabel">${String(h).padStart(2,"0")}:00</span></div>`);
-  return hours.join("");
+  const rows=[];
+  for(let h=0;h<24;h+=3){
+    rows.push(`<div class="todayHour"><span class="todayHourLabel">${String(h).padStart(2,"0")}–${String(h+3).padStart(2,"0")}</span></div>`);
+  }
+  return rows.join("");
 }
 function placeTodayTimelineEvents(root,day){
   const timeline=root.querySelector("#todayTimeline");
+  const fm=root.querySelector("#finishedTimelineEvents");if(fm){const es=state.completionEvents.filter(ev=>ev.day===dayKey);if(!es.length)fm.appendChild(el(`<div class="muted">No finished habits or missions.</div>`));for(const ev of es){const r=el(`<div class="item timelineEvent"><div class="row sp wrap"><div><b>${escapeHtml(ev.title)}</b><div class="meta">${escapeHtml(ev.kind)} • +${ev.xp} XP</div></div><button class="btn small">Proof</button></div></div>`);r.querySelector("button").onclick=()=>openCompletionEvidence(ev);fm.appendChild(r)}}
   const total=24*60;
   for(const a of onlyDay(state.today.activities,day)){
     const s=minutesFromTime(a.start), e=minutesFromTime(a.end);
     if(s==null) continue;
     const end=e!=null&&e>s?e:s+60;
-    const top=Math.max(0,s/total*1296);
-    const height=Math.max(38,(end-s)/total*1296);
+    const timelineHeight=8*110;
+    const top=Math.max(0,s/total*timelineHeight);
+    const height=Math.max(38,(end-s)/total*timelineHeight);
     const ev=el(`<div class="todayEvent ${a.kind==="future"?"future":"activity"}" style="top:${top}px;height:${height}px">
       <div class="todayEventTitle">${a.timerRunning?'<span class="runningPulse"></span>':""}${escapeHtml(a.name)}</div>
       <div class="todayEventMeta">${escapeHtml(a.mainCode)} ${a.start||""}${a.end?`–${a.end}`:""}${a.timerRunning?" • click to stop":""}</div>
@@ -2558,6 +2896,7 @@ function screenToday(){
           <div class="card">
             <h3 style="margin-top:0">${isToday?"Today's":"Day"} timeline</h3>
             <div class="todayTimeline" id="todayTimeline">${todayTimelineHtml()}</div>
+          <div class="card" style="margin-top:10px"><div class="title">Finished events</div><div class="list" id="finishedTimelineEvents" style="margin-top:8px"></div></div>
           </div>
         </div>
 
@@ -3257,6 +3596,12 @@ function wireInlineTaskChecklist(container,task){
   });
 }
 
+
+function openSpecialMissionModal(){
+  const body=el(`<div class="grid" style="gap:10px"><div class="field"><label class="muted">Special mission</label><input id="smTitle"></div><div class="field"><label class="muted">Mainskill</label><select id="smMain">${orderedMainskills().map(m=>`<option value="${m.code}">${m.code} — ${escapeHtml(m.name)}</option>`).join("")}</select></div><div class="field"><label class="muted">Subskill (optional)</label><select id="smSub"></select></div><div class="field"><label class="muted">Description</label><textarea id="smDesc"></textarea></div><div class="hint">Red, +2 XP, one completion only.</div><div class="row wrap"><button class="btn bad" id="saveSM">Create</button><button class="btn" id="cancelSM">Cancel</button></div></div>`);
+  const a=body.querySelector("#smMain"),b=body.querySelector("#smSub");function refresh(){b.innerHTML=`<option value="">(mainskill directly)</option>`+nodesForMain(a.value).map(n=>`<option value="${n.id}">${escapeHtml(n.name)}</option>`).join("")}a.onchange=refresh;refresh();
+  body.querySelector("#cancelSM").onclick=closeModal;body.querySelector("#saveSM").onclick=()=>{const title=body.querySelector("#smTitle").value.trim();if(!title)return alert("Title required.");state.missions.unshift({id:cryptoId(),title,desc:body.querySelector("#smDesc").value.trim(),mainCode:a.value,nodeId:b.value||null,points:0,special:true,completedOnce:false,checklist:[],createdAt:new Date().toISOString()});saveState();closeModal();render()};openModal("New Special Mission",body)
+}
 /* MISSIONS TAB */
 function screenMissions(){
   const top = pageHeaderWithNotes({ kicker:"Missions", title:"All missions", subtitle:"Finish gives +1 XP to node + parents + mainskill." });
@@ -3265,13 +3610,14 @@ function screenMissions(){
     <div class="grid">
       <div id="topMount"></div>
       <div class="card">
-        <h3>Your missions</h3>
+        <div class="row sp wrap"><h3 style="margin:0">Your missions</h3><button class="btn bad" id="newSpecialMission">+ Special Mission</button></div>
         <div class="list" id="list"></div>
       </div>
     </div>
   `);
   root.querySelector("#topMount").appendChild(top);
 
+  root.querySelector("#newSpecialMission")?.addEventListener("click",openSpecialMissionModal);
   const list = root.querySelector("#list");
   list.innerHTML = "";
 
@@ -3311,7 +3657,7 @@ function screenMissions(){
     const [checklistBtn, finishBtn, undoBtn, trophyBtn, delBtn] = it.querySelectorAll("button");
     checklistBtn.onclick=()=>openTaskChecklist("Mission",ms);
     wireInlineTaskChecklist(it,ms);
-    finishBtn.onclick = ()=>{ finishMission(ms); render(); };
+    finishBtn.onclick=()=>{if(ms.special)completeSpecialMission(ms);else{finishMission(ms);recordCompletionEvent({kind:"Mission",title:ms.title,mainCode:ms.mainCode,nodeId:ms.nodeId,xp:1,sourceId:ms.id});saveState();render();}};
     undoBtn.onclick = ()=>{ undoMission(ms); render(); };
     trophyBtn.onclick = ()=>{
       addToTrophyRoom({ mainCode: ms.mainCode, title: ms.title, desc: ms.desc, kind: "mission", startAt: ms.createdAt, finishedAt: new Date().toISOString(), dueISO: ms.dueISO||"" });
@@ -3337,6 +3683,7 @@ function openStandaloneHabitModal(){
     <div class="field"><label class="muted">Mainskill</label><select id="habitMain">${orderedMainskills().map(m=>`<option value="${m.code}">${m.code} — ${escapeHtml(m.name)}</option>`).join("")}</select></div>
     <div class="field"><label class="muted">Subskill (optional)</label><select id="habitSub"></select></div>
     <div class="field"><label class="muted">Description</label><textarea id="habitDesc"></textarea></div>
+    <div class="field"><label class="muted">Frequency</label><select id="habitFrequency"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
     <div class="field"><label class="muted">Due date (optional)</label><input id="habitDue" type="date"></div>
     <div class="row wrap"><button class="btn ok" id="saveHabit">Add habit</button><button class="btn" id="cancelHabit">Cancel</button></div>
   </div>`);
@@ -3355,7 +3702,7 @@ function openStandaloneHabitModal(){
       id:cryptoId(),title,desc:body.querySelector("#habitDesc").value.trim(),
       mainCode:mainSel.value,nodeId:subSel.value||null,
       dueISO:due?new Date(due+"T00:00:00").toISOString():"",
-      points:0,checklist:[],createdAt:new Date().toISOString()
+      points:0,frequency:body.querySelector("#habitFrequency").value,completions:[],checklist:[],createdAt:new Date().toISOString()
     });
     saveState();closeModal();render();
   };
@@ -3417,7 +3764,7 @@ function screenHabits(){
     const [checklistBtn, finishBtn, undoBtn, trophyBtn, delBtn] = it.querySelectorAll("button");
     checklistBtn.onclick=()=>openTaskChecklist("Habit",h);
     wireInlineTaskChecklist(it,h);
-    finishBtn.onclick = ()=>{ finishHabit(h); render(); };
+    finishBtn.onclick = ()=>{ completeHabitV10(h); };
     undoBtn.onclick = ()=>{ undoHabit(h); render(); };
     trophyBtn.onclick = ()=>{
       addToTrophyRoom({ mainCode: h.mainCode, title: h.title, desc: h.desc, kind: "habit", startAt: h.createdAt, finishedAt: new Date().toISOString(), dueISO: h.dueISO||"" });
@@ -4399,23 +4746,391 @@ function screenChecklists(){
   return root;
 }
 
+
+/* =========================
+   TODOLIST
+========================= */
+function toggleTodoDone(todo){
+  if(!todo.done){
+    todo.done=true;
+    todo.completedAt=new Date().toISOString();
+    if(!todo.xpAwarded){
+      addXpFlow(todo.mainCode,todo.nodeId,+1,todo.dueDay||todayKey());
+      todo.xpAwarded=true;
+    }
+  }else{
+    todo.done=false;
+    todo.completedAt="";
+    if(todo.xpAwarded){
+      addXpFlow(todo.mainCode,todo.nodeId,-1,todo.dueDay||todayKey());
+      todo.xpAwarded=false;
+    }
+  }
+  saveState();render();
+}
+
+function openCompletionEvidence(ev){
+ const body=el(`<div class="grid" style="gap:10px"><div class="field"><label class="muted">Proof link</label><input id="proofLink"></div><div class="field"><label class="muted">Photo/video</label><input id="proofFile" type="file" accept="image/*,video/*"></div><div class="hint">Files over 2.5 MB should be linked instead, because this version stores data locally.</div><div class="row wrap"><button class="btn ok" id="saveProof">Save</button><button class="btn" id="cancelProof">Cancel</button></div></div>`);
+ body.querySelector("#proofLink").value=ev.link||"";body.querySelector("#cancelProof").onclick=closeModal;body.querySelector("#saveProof").onclick=()=>{ev.link=body.querySelector("#proofLink").value.trim();const f=body.querySelector("#proofFile").files[0];if(f){if(f.size>2500000)return alert("Too large for local storage. Use a link.");const r=new FileReader();r.onload=()=>{ev.attachment={name:f.name,type:f.type,data:r.result};saveState();closeModal();render()};r.readAsDataURL(f)}else{saveState();closeModal();render()}};openModal("Completion proof",body)
+}
+function completionEventCard(ev){
+ const member=!!state.account?.membership,net=(ev.upvotes||0)-(ev.downvotes||0);
+ const c=el(`<div class="feedCard ${ev.special?"specialMission":""}"><div class="row sp wrap"><div><div class="title">${escapeHtml(ev.title)}</div><div class="meta"><span class="chip">${escapeHtml(ev.kind)}</span><span class="chip">${escapeHtml(ev.day)}</span><span class="chip">+${ev.xp} XP</span>${ev.validated?` <span class="verifiedBadge">✓ VALIDATED</span>`:""}</div></div><button class="btn small proof">Proof</button></div>${ev.attachment?.type?.startsWith("image/")?`<img class="mediaPreview" src="${ev.attachment.data}">`:""}${ev.attachment?.type?.startsWith("video/")?`<video class="mediaPreview" controls src="${ev.attachment.data}"></video>`:""}<div class="row wrap" style="margin-top:9px"><button class="btn small up" ${member?"":"disabled"}>▲ ${ev.upvotes||0}</button><button class="btn small down" ${member?"":"disabled"}>▼ ${ev.downvotes||0}</button><span class="chip">Net ${net}/5</span></div></div>`);
+ c.querySelector(".proof").onclick=()=>openCompletionEvidence(ev);c.querySelector(".up").onclick=()=>{if(ev.myVote===1){ev.upvotes--;ev.myVote=0}else{if(ev.myVote===-1)ev.downvotes--;ev.upvotes++;ev.myVote=1}validateCompletionEvent(ev);saveState();render()};c.querySelector(".down").onclick=()=>{if(ev.myVote===-1){ev.downvotes--;ev.myVote=0}else{if(ev.myVote===1)ev.upvotes--;ev.downvotes++;ev.myVote=-1}validateCompletionEvent(ev);saveState();render()};return c
+}
+function screenFeed(){
+ const root=el(`<div class="grid"><div id="topMount"></div><div class="card"><h3>Member Feed</h3><div class="list" id="feedList"></div></div></div>`);root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"Front page",title:"Member Feed",subtitle:"Member completions appear here. Shared multi-user voting will require a backend/database."}));const l=root.querySelector("#feedList");if(!state.completionEvents.length)l.appendChild(el(`<div class="muted">No completed events yet.</div>`));for(const ev of state.completionEvents)l.appendChild(completionEventCard(ev));return root
+}
+
+/* =========================
+   APPOINTMENTS
+========================= */
+function openAppointmentModal(existing=null){
+  const a=existing||{id:cryptoId(),person:"",date:"",time:"",location:"",notes:"",talkingPoints:[],completed:false,createdAt:new Date().toISOString()};
+  const draft=(a.talkingPoints||[]).map(p=>({id:p.id||cryptoId(),text:p.text||"",done:!!p.done}));
+
+  const body=el(`<div class="grid" style="gap:10px">
+    <div class="field"><label class="muted">Person's name</label><input id="apPerson" placeholder="Name"></div>
+    <div class="grid cols2">
+      <div class="field"><label class="muted">Date</label><input id="apDate" type="date"></div>
+      <div class="field"><label class="muted">Time</label><input id="apTime" type="time"></div>
+    </div>
+    <div class="field"><label class="muted">Location</label><input id="apLocation" placeholder="Optional"></div>
+    <div class="field"><label class="muted">Talking points</label><div id="apPoints" class="grid" style="gap:8px"></div><button class="btn small" id="apAddPoint">+ Talking point</button></div>
+    <div class="field"><label class="muted">Notes</label><textarea id="apNotes"></textarea></div>
+    <label class="row" style="gap:8px"><input id="apDone" type="checkbox"><b>Meeting completed</b></label>
+    <div class="row wrap"><button class="btn ok" id="apSave">${existing?"Save changes":"Create appointment"}</button><button class="btn" id="apCancel">Cancel</button></div>
+  </div>`);
+
+  body.querySelector("#apPerson").value=a.person||"";
+  body.querySelector("#apDate").value=a.date||"";
+  body.querySelector("#apTime").value=a.time||"";
+  body.querySelector("#apLocation").value=a.location||"";
+  body.querySelector("#apNotes").value=a.notes||"";
+  body.querySelector("#apDone").checked=!!a.completed;
+
+  const points=body.querySelector("#apPoints");
+  function drawPoints(){
+    points.innerHTML="";
+    if(!draft.length) points.appendChild(el(`<div class="muted">No talking points yet.</div>`));
+    draft.forEach((p,idx)=>{
+      const row=el(`<div class="row wrap"><input class="ptxt" style="flex:1;min-width:220px" placeholder="What do you want to discuss?"><button class="btn bad small">Remove</button></div>`);
+      row.querySelector(".ptxt").value=p.text;
+      row.querySelector(".ptxt").oninput=e=>p.text=e.target.value;
+      row.querySelector("button").onclick=()=>{draft.splice(idx,1);drawPoints();};
+      points.appendChild(row);
+    });
+  }
+  drawPoints();
+  body.querySelector("#apAddPoint").onclick=()=>{draft.push({id:cryptoId(),text:"",done:false});drawPoints();};
+  body.querySelector("#apCancel").onclick=closeModal;
+  body.querySelector("#apSave").onclick=()=>{
+    const person=body.querySelector("#apPerson").value.trim();
+    if(!person) return alert("Enter the person's name.");
+    const payload={...a,person,date:body.querySelector("#apDate").value,time:body.querySelector("#apTime").value,location:body.querySelector("#apLocation").value.trim(),notes:body.querySelector("#apNotes").value.trim(),completed:body.querySelector("#apDone").checked,talkingPoints:draft.map(p=>({id:p.id,text:(p.text||"").trim(),done:!!p.done})).filter(p=>p.text)};
+    if(existing) Object.assign(existing,payload); else state.appointments.unshift(payload);
+    saveState();closeModal();render();
+  };
+  openModal(existing?"Edit appointment":"New appointment",body);
+}
+
+function screenAppointments(){
+  const root=el(`<div class="grid"><div id="topMount"></div><div class="row sp wrap"><div><h3 style="margin:0">Appointments</h3><div class="muted">Prepare talking points and check them off during the meeting.</div></div><button class="btn ok" id="newAppointment">+ Appointment</button></div><div class="list" id="appointmentsList"></div></div>`);
+  root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"People",title:"Appointments",subtitle:"Enter a person's name, prepare talking points, and tick them off as you talk."}));
+  root.querySelector("#newAppointment").onclick=()=>openAppointmentModal();
+
+  const list=root.querySelector("#appointmentsList");
+  if(!state.appointments.length){list.appendChild(el(`<div class="card"><div class="muted">No appointments yet.</div></div>`));return root;}
+
+  const sorted=[...state.appointments].sort((a,b)=>(`${a.date||"9999"} ${a.time||"99:99"}`).localeCompare(`${b.date||"9999"} ${b.time||"99:99"}`));
+  for(const a of sorted){
+    const card=el(`<div class="appointmentCard ${a.completed?"done":""}">
+      <div class="row sp wrap"><div><div class="title">${escapeHtml(a.person)}</div><div class="meta">${a.date?`<span class="chip">${escapeHtml(a.date)}</span>`:""}${a.time?`<span class="chip">${escapeHtml(a.time)}</span>`:""}${a.location?`<span class="chip">${escapeHtml(a.location)}</span>`:""}${a.completed?`<span class="chip">Completed</span>`:""}</div></div>
+      <div class="row wrap"><button class="btn small editAp">Edit</button><button class="btn bad small delAp">Delete</button></div></div>
+      <div class="hr"></div><div class="title" style="font-size:14px">Talking points</div><div class="pointList"></div>
+      ${a.notes?`<div class="hr"></div><div class="muted">${escapeHtml(a.notes)}</div>`:""}
+    </div>`);
+    const pList=card.querySelector(".pointList");
+    if(!(a.talkingPoints||[]).length)pList.appendChild(el(`<div class="muted" style="margin-top:8px">No talking points.</div>`));
+    else for(const p of a.talkingPoints){
+      const row=el(`<label class="talkPoint"><input type="checkbox" ${p.done?"checked":""}><span class="talkPointText ${p.done?"done":""}">${escapeHtml(p.text)}</span></label>`);
+      row.querySelector("input").onchange=e=>{p.done=e.target.checked;saveState();render();};
+      pList.appendChild(row);
+    }
+    card.querySelector(".editAp").onclick=()=>openAppointmentModal(a);
+    card.querySelector(".delAp").onclick=()=>{if(confirm(`Delete appointment with ${a.person}?`)){state.appointments=state.appointments.filter(x=>x.id!==a.id);saveState();render();}};
+    list.appendChild(card);
+  }
+  return root;
+}
+
+function screenTodoList(){
+  const root=el(`
+    <div class="grid">
+      <div id="topMount"></div>
+      <div class="todoGroups" id="todoGroups"></div>
+    </div>
+  `);
+  root.querySelector("#topMount").appendChild(pageHeaderWithNotes({
+    kicker:"To-do list",
+    title:"Subskill action lists",
+    subtitle:"Add a subskill to Today, Tomorrow, or a custom list. Checking it off gives +1 XP to that subskill."
+  }));
+
+  const groups=[
+    {key:"today",title:"Today",items:state.todos.filter(t=>t.listType==="today")},
+    {key:"tomorrow",title:"Tomorrow",items:state.todos.filter(t=>t.listType==="tomorrow")}
+  ];
+  const customNames=[...new Set(state.todos.filter(t=>t.listType==="custom").map(t=>t.customLabel||"Custom"))];
+  for(const name of customNames) groups.push({key:"custom:"+name,title:name,items:state.todos.filter(t=>t.listType==="custom"&&(t.customLabel||"Custom")===name)});
+
+  const mount=root.querySelector("#todoGroups");
+  if(!state.todos.length){
+    mount.appendChild(el(`<div class="card"><div class="muted">No to-do items yet. Open a subskill and press <b>+ To-do</b>.</div></div>`));
+    return root;
+  }
+
+  for(const g of groups){
+    if(!g.items.length) continue;
+    const box=el(`<section class="todoGroup">
+      <div class="row sp wrap"><h3 style="margin:0">${escapeHtml(g.title)}</h3><span class="chip">${g.items.filter(x=>x.done).length}/${g.items.length}</span></div>
+      <div class="list" style="margin-top:10px"></div>
+    </section>`);
+    const list=box.querySelector(".list");
+    for(const todo of g.items){
+      const node=state.subskills[todo.nodeId];
+      const item=el(`<div class="todoItem ${todo.done?"done":""}">
+        <div class="row" style="align-items:flex-start">
+          <input class="todoCheck" type="checkbox" ${todo.done?"checked":""}>
+          <div>
+            <div class="todoTitle">${escapeHtml(node?.name||todo.title)}</div>
+            <div class="meta">
+              <span class="chip" style="border-color:${SKILL_COLOR[todo.mainCode]||"#777"}">${escapeHtml(todo.mainCode)} — ${escapeHtml(mainskillName(todo.mainCode))}</span>
+              ${todo.dueDay?`<span class="chip">${escapeHtml(todo.dueDay)}</span>`:""}
+              <span class="chip">+1 XP</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn bad small todoDelete">Delete</button>
+      </div>`);
+      item.querySelector(".todoCheck").onchange=()=>toggleTodoDone(todo);
+      item.querySelector(".todoDelete").onclick=()=>{
+        if(confirm("Delete this to-do item?")){
+          state.todos=state.todos.filter(x=>x.id!==todo.id);
+          saveState();render();
+        }
+      };
+      list.appendChild(item);
+    }
+    mount.appendChild(box);
+  }
+  return root;
+}
+
+function applyTheme(){document.body.classList.toggle("lightMode",state?.account?.theme==="light")}
+
+/* =========================
+   COLLECTIONS
+========================= */
+function collectionContent(page){
+  if(page==="TODAY"||page==="TOMORROW") return screenToday();
+  if(page==="TODOLIST") return screenTodoList();
+  if(page==="PRIORITIES") return screenPriorities();
+  if(page==="GOALS") return screenGoals();
+  if(page==="CHECKLISTS") return screenChecklists();
+  if(page==="MAINSKILLS") return screenMainSkills();
+  if(page==="SKILLSMAP") return screenSkillsMap();
+  if(page==="MISSIONS") return screenMissions();
+  if(page==="HABITS") return screenHabits();
+  if(page==="STATS") return screenStats();
+  if(page==="CALENDAR") return screenCalendar();
+  if(page==="APPOINTMENTS") return screenAppointments();
+  if(page==="DIET") return screenDiet();
+  if(page==="FITNESS") return screenFitness();
+  if(page==="INVESTMENTS") return screenInvestments();
+  if(page==="BUDGET") return screenBudgetAllocation();
+  if(page==="FEED") return screenFeed();
+  if(page==="FORUMS") return screenForums();
+  if(page==="LFG") return screenLfg();
+  if(page==="GUILDS") return screenGuilds();
+  if(page==="FEEDBACK") return screenDevFeedback();
+  if(page==="SHOP") return screenShop();
+  return el(`<div class="card"><div class="muted">Page not available yet.</div></div>`);
+}
+function screenCollections(){
+  const coll=COLLECTIONS[state.ui.collection]||COLLECTIONS.MAIN;
+  if(!coll.pages.some(([id])=>id===state.ui.collectionPage)) state.ui.collectionPage=coll.pages[0][0];
+  const root=el(`<div class="grid"><div class="card"><div class="collectionNav" id="collectionNav"></div><div class="collectionPages" id="collectionPages"></div></div><div id="collectionMount"></div></div>`);
+  const nav=root.querySelector("#collectionNav");
+  Object.entries(COLLECTIONS).forEach(([id,c])=>{
+    const b=el(`<button class="btn ${state.ui.collection===id?"active":""}">${escapeHtml(c.label)}</button>`);
+    b.onclick=()=>setCollection(id);nav.appendChild(b);
+  });
+  const sub=root.querySelector("#collectionPages");
+  coll.pages.forEach(([id,label])=>{
+    const b=el(`<button class="btn small ${state.ui.collectionPage===id?"active":""}">${escapeHtml(label)}</button>`);
+    b.onclick=()=>setCollectionPage(id);sub.appendChild(b);
+  });
+  root.querySelector("#collectionMount").appendChild(collectionContent(state.ui.collectionPage));
+  return root;
+}
+
+/* =========================
+   BODY
+========================= */
+function screenDiet(){
+  const day=selectedDayKey();
+  const meals=onlyDay(state.today.meals,day);
+  const calories=dayCalories(day), target=Number(state.today.calorieTarget)||2000;
+  const root=el(`<div class="grid">
+    <div id="topMount"></div>
+    <div class="card"><div class="row sp wrap"><div><h3 style="margin:0">${escapeHtml(displayDay(day))}</h3><div class="muted">Calories ${calories} / ${target}</div></div><button class="btn ok" id="dietLogFood">+ Log food</button></div><div class="hr"></div><div class="list" id="dietMeals"></div></div>
+  </div>`);
+  root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"Body",title:"Diet",subtitle:"Food and calorie logging collected in one compact Body section."}));
+  root.querySelector("#dietLogFood").onclick=()=>openTodayMealModal(day);
+  const list=root.querySelector("#dietMeals");
+  if(!meals.length) list.appendChild(el(`<div class="muted">No food logged for this day.</div>`));
+  for(const m of meals) list.appendChild(el(`<div class="item"><div class="row sp wrap"><b>${escapeHtml(m.name||"Meal")}</b><span class="chip">${Number(m.calories)||0} kcal</span></div></div>`));
+  return root;
+}
+function screenFitness(){
+  const day=selectedDayKey();
+  const acts=onlyDay(state.today.activities,day).filter(a=>a.mainCode==="PHY"||a.mainCode==="REC");
+  const root=el(`<div class="grid"><div id="topMount"></div><div class="card"><div class="row sp wrap"><h3 style="margin:0">Fitness & Recovery</h3><button class="btn ok" id="fitnessActivity">+ Activity</button></div><div class="hr"></div><div class="list" id="fitnessList"></div></div></div>`);
+  root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"Body",title:"Fitness",subtitle:"Physical and recovery activities for the selected day."}));
+  root.querySelector("#fitnessActivity").onclick=()=>openTodayActivityModal(day,false);
+  const list=root.querySelector("#fitnessList");
+  if(!acts.length) list.appendChild(el(`<div class="muted">No Physical or Recovery activities logged for this day.</div>`));
+  for(const a of acts) list.appendChild(el(`<div class="item"><div class="row sp wrap"><div><b>${escapeHtml(a.name||"Activity")}</b><div class="meta">${escapeHtml(a.mainCode||"")}</div></div><span class="chip">${Number(a.effort)||0} effort</span></div></div>`));
+  return root;
+}
+
+/* =========================
+   MONEY
+========================= */
+function screenBudgetAllocation(){
+  const root=el(`<div class="grid"><div id="topMount"></div><div class="card">
+    <div class="row sp wrap"><div><h3 style="margin:0">Budget Allocation</h3><div class="muted">Assign your available money to categories.</div></div><button class="btn ok" id="addBudget">+ Allocation</button></div>
+    <div class="hr"></div><div class="list" id="budgetList"></div><div class="hr"></div><div class="row sp"><b>Total allocated</b><b id="budgetTotal"></b></div>
+  </div></div>`);
+  root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"Money",title:"Budget Allocation",subtitle:"Plan where your money should go before you spend it."}));
+  const draw=()=>{
+    const list=root.querySelector("#budgetList");list.innerHTML="";
+    let total=0;
+    if(!state.budgetAllocations.length)list.appendChild(el(`<div class="muted">No budget categories yet.</div>`));
+    state.budgetAllocations.forEach(x=>{
+      total+=Number(x.amount)||0;
+      const row=el(`<div class="item"><div class="row sp wrap"><div><b>${escapeHtml(x.name)}</b><div class="meta">${escapeHtml(x.note||"")}</div></div><div class="row wrap"><span class="chip">${Number(x.amount||0).toFixed(2)}</span><button class="btn bad small">Delete</button></div></div></div>`);
+      row.querySelector("button").onclick=()=>{state.budgetAllocations=state.budgetAllocations.filter(y=>y.id!==x.id);saveState();render();};
+      list.appendChild(row);
+    });
+    root.querySelector("#budgetTotal").textContent=total.toFixed(2);
+  };
+  root.querySelector("#addBudget").onclick=()=>{
+    const b=el(`<div class="grid" style="gap:10px"><div class="field"><label class="muted">Category</label><input id="bn" placeholder="Rent, food, investing..."></div><div class="field"><label class="muted">Amount</label><input id="ba" type="number" min="0" step="0.01"></div><div class="field"><label class="muted">Note</label><input id="bnote"></div><div class="row"><button class="btn ok" id="bsave">Save</button><button class="btn" id="bcancel">Cancel</button></div></div>`);
+    b.querySelector("#bcancel").onclick=closeModal;b.querySelector("#bsave").onclick=()=>{const name=b.querySelector("#bn").value.trim();if(!name)return alert("Category required.");state.budgetAllocations.push({id:cryptoId(),name,amount:Number(b.querySelector("#ba").value)||0,note:b.querySelector("#bnote").value.trim()});saveState();closeModal();render();};openModal("Budget allocation",b);
+  };
+  draw();return root;
+}
+
+/* =========================
+   MULTIPLAYER
+========================= */
+function simpleCommunityScreen(kind,title,subtitle,buttonLabel){
+  const arr=state.multiplayer[kind];
+  const root=el(`<div class="grid"><div id="topMount"></div><div class="card"><div class="row sp wrap"><h3 style="margin:0">${escapeHtml(title)}</h3><button class="btn ok" id="newCommunity">${escapeHtml(buttonLabel)}</button></div><div class="hr"></div><div class="list" id="communityList"></div></div></div>`);
+  root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"Multiplayer",title,subtitle}));
+  const list=root.querySelector("#communityList");
+  if(!arr.length) list.appendChild(el(`<div class="muted">Nothing posted yet.</div>`));
+  for(const x of [...arr].reverse()) list.appendChild(el(`<div class="forumThread"><div class="title">${escapeHtml(x.title)}</div><div class="muted" style="margin-top:5px">${escapeHtml(x.body||"")}</div><div class="meta" style="margin-top:7px">${escapeHtml(x.author||state.profile?.username||"Member")} • ${escapeHtml((x.createdAt||"").slice(0,10))}</div></div>`));
+  root.querySelector("#newCommunity").onclick=()=>{
+    const b=el(`<div class="grid" style="gap:10px"><div class="field"><label class="muted">Title</label><input id="ctitle"></div><div class="field"><label class="muted">Post</label><textarea id="cbody"></textarea></div><div class="row"><button class="btn ok" id="cpost">Post</button><button class="btn" id="ccancel">Cancel</button></div><div class="hint">This prototype stores posts locally. The launch version will use the shared online database.</div></div>`);
+    b.querySelector("#ccancel").onclick=closeModal;b.querySelector("#cpost").onclick=()=>{const title=b.querySelector("#ctitle").value.trim();if(!title)return alert("Title required.");arr.push({id:cryptoId(),title,body:b.querySelector("#cbody").value.trim(),author:state.profile?.username||"Member",createdAt:new Date().toISOString()});saveState();closeModal();render();};openModal(title,b);
+  };return root;
+}
+function screenForums(){return simpleCommunityScreen("threads","Forums","Create discussion threads with other GoGetta members.","+ Thread")}
+function screenLfg(){return simpleCommunityScreen("lfg","Looking For Group","Find people for workouts, hikes, study sessions, games, missions and other group activities.","+ LFG post")}
+function screenGuilds(){return simpleCommunityScreen("guilds","Guilds","Create or recruit for communities and teams.","+ Guild")}
+function screenDevFeedback(){return simpleCommunityScreen("feedback","Feedback to the dev","Post feature requests, bugs and feedback directly for development.","+ Feedback")}
+
+/* =========================
+   SHOP
+========================= */
+const ARMOUR_COSMETICS=[
+  {id:"bronze",name:"Bronze Armour",level:1,cost:10,icon:"🛡️"},
+  {id:"iron",name:"Iron Armour",level:5,cost:25,icon:"🛡️"},
+  {id:"steel",name:"Steel Armour",level:10,cost:50,icon:"⚔️"},
+  {id:"black",name:"Black Armour",level:20,cost:100,icon:"🖤"},
+  {id:"mithril",name:"Mithril Armour",level:30,cost:175,icon:"🔷"},
+  {id:"adamant",name:"Adamant Armour",level:40,cost:300,icon:"🟩"},
+  {id:"rune",name:"Rune Armour",level:50,cost:500,icon:"🔹"},
+  {id:"dragon",name:"Dragon Armour",level:70,cost:1000,icon:"🐉"}
+];
+function screenShop(){
+  const lvl=playerCombatLevel();
+  const root=el(`<div class="grid"><div id="topMount"></div>
+    <div class="card"><div class="row sp wrap"><div><h3 style="margin:0">Memberships</h3><div class="muted">Beta is free. Alpha and Sigma checkout will connect to the payment system before public launch.</div></div><span class="chip">${escapeHtml(state.account.membership||"BETA")} member</span></div><div class="shopGrid" id="membershipGrid" style="margin-top:12px"></div></div>
+    <div class="card"><div class="row sp wrap"><div><h3 style="margin:0">Cosmetics</h3><div class="muted">Armour unlocks by Combat Level and is bought with Monkey Nuts. Spend 1 red Donkey Nut to trim an owned set.</div></div><div class="row wrap"><span class="nutChip">🥜 ${state.economy.monkeyNuts||0}</span><span class="nutChip donkeyNut">🔴 ${state.economy.donkeyNuts||0}</span><span class="chip">CB ${lvl}</span></div></div><div class="shopGrid" id="cosmeticGrid" style="margin-top:12px"></div></div>
+  </div>`);
+  root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"Shop",title:"GoGetta Shop",subtitle:"Memberships and level-gated cosmetics. Donkey Nuts create trimmed variants."}));
+  const memberships=[
+    ["BETA","Beta","Free","Core membership and launch access."],
+    ["ALPHA","Alpha","1–3 month subscription","Supporter cosmetics and Alpha badge."],
+    ["SIGMA","Sigma","1+ year purchase","Long-term supporter cosmetics and Sigma badge."]
+  ];
+  const mg=root.querySelector("#membershipGrid");
+  memberships.forEach(([id,name,price,desc])=>{
+    const active=state.account.membership===id;
+    const c=el(`<div class="shopItem"><div class="title">${name}</div><div class="chip" style="margin:8px 0">${price}</div><div class="muted">${desc}</div><button class="btn ${active?"ok":"primary"} membershipBuy" style="margin-top:12px">${active?"Current membership":id==="BETA"?"Use Beta":"Buy "+name}</button></div>`);
+    c.querySelector("button").onclick=()=>{if(id==="BETA"){state.account.membership="BETA";saveState();render();}else alert(`${name} checkout will activate when Stripe and GoGetta Online accounts are connected. This local file cannot securely take payments.`);};
+    mg.appendChild(c);
+  });
+  const cg=root.querySelector("#cosmeticGrid");
+  for(const item of ARMOUR_COSMETICS){
+    const owned=state.shop.ownedCosmetics.includes(item.id), trimmed=state.shop.trimmedCosmetics.includes(item.id), equipped=state.shop.equippedCosmetic===item.id;
+    const unlocked=lvl>=item.level;
+    const c=el(`<div class="shopItem ${unlocked?"":"locked"}">
+      <div class="title">${escapeHtml(item.name)}${trimmed?" (t)":""}</div><div class="armorPreview ${trimmed?"trimmedPreview":""}">${item.icon}</div>
+      <div class="meta"><span class="chip">CB ${item.level}</span><span class="chip">🥜 ${item.cost}</span>${trimmed?`<span class="chip donkeyNut">TRIMMED</span>`:""}</div>
+      <div class="row wrap" style="margin-top:11px"><button class="btn primary buyArmor">${!unlocked?"Locked":owned?(equipped?"Equipped":"Equip"):"Buy"}</button>${owned&&!trimmed?`<button class="btn bad trimArmor">Trim 🔴1</button>`:""}</div>
+    </div>`);
+    c.querySelector(".buyArmor").onclick=()=>{
+      if(!unlocked)return alert(`Requires Combat Level ${item.level}.`);
+      if(!owned){
+        if((state.economy.monkeyNuts||0)<item.cost)return alert("Not enough Monkey Nuts.");
+        state.economy.monkeyNuts=Math.max(0,(state.economy.monkeyNuts||0)-item.cost);
+        state.shop.ownedCosmetics.push(item.id);
+      }
+      state.shop.equippedCosmetic=item.id;saveState();render();
+    };
+    c.querySelector(".trimArmor")?.addEventListener("click",()=>{
+      if((state.economy.donkeyNuts||0)<1)return alert("You need 1 Donkey Nut to trim this armour.");
+      state.economy.donkeyNuts-=1;state.shop.trimmedCosmetics.push(item.id);saveState();render();
+    });
+    cg.appendChild(c);
+  }
+  return root;
+}
+
 function render(){
+  applyTheme();
+  const legacyToCollection={
+    TODAY:"MAIN",TOMORROW:"MAIN",TODOLIST:"MAIN",PRIORITIES:"MAIN",GOALS:"MAIN",CHECKLISTS:"MAIN",
+    MAINSKILLS:"SKILLING",SKILLSMAP:"SKILLING",MISSIONS:"SKILLING",HABITS:"SKILLING",STATS:"SKILLING",
+    CALENDAR:"SCHEDULE",APPOINTMENTS:"SCHEDULE",
+    INVESTMENTS:"MONEY",FEED:"MULTIPLAYER"
+  };
+  if(legacyToCollection[state.ui.activeTab]){
+    state.ui.collection=legacyToCollection[state.ui.activeTab];
+    state.ui.collectionPage=state.ui.activeTab;
+    state.ui.activeTab="COLLECTIONS";
+  }
   renderTabs();
   mainEl.innerHTML = "";
   const tab = state.ui.activeTab;
 
   if (tab==="PROFILE") mainEl.appendChild(screenProfile());
-  else if (tab==="TODAY" || tab==="TOMORROW") mainEl.appendChild(screenToday());
-  else if (tab==="MAINSKILLS") mainEl.appendChild(screenMainSkills());
-  else if (tab==="SKILLSMAP") mainEl.appendChild(screenSkillsMap());
-  else if (tab==="MISSIONS") mainEl.appendChild(screenMissions());
-  else if (tab==="HABITS") mainEl.appendChild(screenHabits());
-  else if (tab==="GOALS") mainEl.appendChild(screenGoals());
-  else if (tab==="CHECKLISTS") mainEl.appendChild(screenChecklists());
-  else if (tab==="PRIORITIES") mainEl.appendChild(screenPriorities());
-  else if (tab==="CALENDAR") mainEl.appendChild(screenCalendar());
-  else if (tab==="STATS") mainEl.appendChild(screenStats());
-  else if (tab==="INVESTMENTS") mainEl.appendChild(screenInvestments());
+  else if (tab==="COLLECTIONS") mainEl.appendChild(screenCollections());
   else if (tab==="NOTES") mainEl.appendChild(screenNotes());
   else mainEl.appendChild(screenProfile());
 }
@@ -4454,6 +5169,43 @@ document.getElementById("importBtn").onclick = ()=>{
     r.readAsText(file);
   };
   inp.click();
+};
+
+
+document.getElementById("copyDataBtn").onclick = async ()=>{
+  const text=JSON.stringify(state,null,2);
+  try{
+    await navigator.clipboard.writeText(text);
+    alert("GoGetta data copied. Paste it into the new version with Paste Data.");
+  }catch{
+    const body=el(`<div class="grid" style="gap:10px"><div class="muted">Copy all of this text:</div><textarea id="copyBox" style="min-height:360px"></textarea><button class="btn" id="closeCopy">Close</button></div>`);
+    body.querySelector("#copyBox").value=text;
+    body.querySelector("#copyBox").select();
+    body.querySelector("#closeCopy").onclick=closeModal;
+    openModal("Copy GoGetta Data",body);
+  }
+};
+document.getElementById("pasteDataBtn").onclick = ()=>{
+  const body=el(`
+    <div class="grid" style="gap:10px">
+      <div class="muted">Paste data copied from another GoGetta version. This replaces the current save for this account.</div>
+      <textarea id="pasteBox" style="min-height:360px" placeholder='Paste the full JSON here'></textarea>
+      <div class="row wrap"><button class="btn ok" id="importPaste">Import pasted data</button><button class="btn" id="cancelPaste">Cancel</button></div>
+    </div>
+  `);
+  body.querySelector("#cancelPaste").onclick=closeModal;
+  body.querySelector("#importPaste").onclick=()=>{
+    try{
+      const obj=JSON.parse(body.querySelector("#pasteBox").value);
+      localStorage.setItem(getStoreKey(),JSON.stringify(obj));
+      state=loadState();
+      saveState();closeModal();render();
+      alert("GoGetta data imported.");
+    }catch(e){
+      alert("Could not import: invalid copied data.");
+    }
+  };
+  openModal("Paste GoGetta Data",body);
 };
 
 document.getElementById("resetBtn").onclick = ()=>{

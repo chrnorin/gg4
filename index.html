@@ -4,6 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#111111" />
+  <meta name="application-name" content="GoGetta GG" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GoGetta" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <title>GoGetta GG</title>
 
   <style>
@@ -451,20 +457,34 @@
     .suggestionChip{cursor:pointer;border:1px solid var(--line);background:var(--card2);border-radius:999px;padding:6px 9px;font-size:12px}
     .suggestionChip:hover{border-color:var(--accent)}
     .forumThread{border:1px solid var(--line);border-radius:14px;padding:11px;background:var(--card2)}
+
+    .authCard{background:var(--panel);color:var(--text);padding:22px;border:1px solid var(--line);border-radius:18px;width:min(360px,calc(100vw - 32px));box-shadow:var(--shadow)}
+    .authCard input{width:100%;box-sizing:border-box;margin-top:8px}
+    .authActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .authInstall{width:100%;margin-top:12px}
+    .settingsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+    .settingLine{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .syncDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#35c46a;margin-right:6px}
 </style>
 </head>
 
 <body>
 
-<div id="authOverlay" style="position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:9999;">
-<div style="background:#111;padding:20px;border-radius:16px;width:280px">
-<h2>GoGetta GG</h2>
-<input id="loginUser" type="email" autocomplete="email" placeholder="Email">
-<input id="loginPass" type="password" autocomplete="current-password" placeholder="Password">
-<button onclick="loginUserFn()">Login</button>
-<button onclick="registerUserFn()">Register</button>
-<div id="loginMsg" class="muted" style="margin-top:8px"></div>
-</div></div>
+<div id="authOverlay" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;">
+  <div class="authCard">
+    <div class="kicker">GoGetta account</div>
+    <h2 style="margin:6px 0 4px">GoGetta GG</h2>
+    <div class="muted" style="margin-bottom:10px">Log in with your username or email. New players choose a username, email and password.</div>
+    <input id="loginUser" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Username or email">
+    <input id="registerEmail" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="Email (needed when registering)">
+    <input id="loginPass" name="password" type="password" autocomplete="current-password" placeholder="Password">
+    <label class="row" style="margin-top:10px;font-size:13px"><input id="rememberLogin" type="checkbox" checked style="width:auto;margin:0"> Remember my username on this device</label>
+    <div class="authActions"><button class="btn primary" onclick="loginUserFn()">Login</button><button class="btn" onclick="registerUserFn()">Register</button></div>
+    <button class="btn authInstall" id="installAppLogin" type="button">INSTALL GOGETTA</button>
+    <div id="installHintLogin" class="muted" style="font-size:12px;margin-top:7px"></div>
+    <div id="loginMsg" class="muted" style="margin-top:10px"></div>
+  </div>
+</div>
 
 <div class="app">
   <header>
@@ -1446,6 +1466,7 @@ const TABS = [
   { id:"PROFILE", label:"PROFILE" },
   { id:"COLLECTIONS", label:"COLLECTIONS" },
   { id:"NOTES", label:"NOTES" },
+  { id:"SETTINGS", label:"SETTINGS" },
 ];
 
 
@@ -4988,6 +5009,37 @@ function screenTodoList(){
   return root;
 }
 
+function screenSettings(){
+  const email=AUTH_USER?.email||"";
+  const authName=AUTH_USER?.user_metadata?.username||state.profile.username||"Player";
+  const root=el(`<div class="grid"><div id="topMount"></div><div class="settingsGrid">
+    <div class="card"><div class="kicker">Account</div><h3>Login & identity</h3><div class="field"><label class="muted">Username</label><input id="settingsUsername"></div><div class="field" style="margin-top:10px"><label class="muted">Email</label><input id="settingsEmail" disabled></div><div class="row wrap" style="margin-top:10px"><button class="btn primary" id="saveAccountName">Save username</button><button class="btn" id="passwordReset">Send password reset email</button></div><div class="muted" style="margin-top:9px;font-size:12px">Passwords are handled by Supabase/browser password managers. GoGetta never stores your raw password.</div></div>
+    <div class="card"><div class="kicker">Appearance</div><h3>Theme</h3><div class="settingLine"><span>GoGetta appearance</span><div class="row"><button class="btn small" id="themeDark">Dark</button><button class="btn small" id="themeLight">Light</button></div></div></div>
+    <div class="card"><div class="kicker">App</div><h3>Install GoGetta</h3><div class="muted">Install GoGetta on this device and launch it like an app.</div><button class="btn primary" id="installAppSettings" style="margin-top:12px">INSTALL GOGETTA</button><div id="installHintSettings" class="muted" style="font-size:12px;margin-top:8px"></div></div>
+    <div class="card"><div class="kicker">Cloud</div><h3>Supabase sync</h3><div><span class="syncDot"></span><b>Cloud account connected</b></div><div class="muted" style="margin-top:8px">Your game state is saved under your account and is not reset when index.html is updated.</div><button class="btn" id="saveCloudNow" style="margin-top:12px">Save to cloud now</button><div id="cloudSaveStatus" class="muted" style="font-size:12px;margin-top:8px"></div></div>
+    <div class="card"><div class="kicker">Data</div><h3>Backup & account</h3><div class="muted">Export/import are also available in the top bar.</div><div class="row wrap" style="margin-top:12px"><button class="btn" id="settingsExport">Export data</button><button class="btn" id="settingsLogout">Log out</button></div></div>
+  </div></div>`);
+  root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"Settings",title:"Settings",subtitle:"Account, appearance, app installation and cloud sync."}));
+  root.querySelector("#settingsUsername").value=authName;
+  root.querySelector("#settingsEmail").value=email;
+  root.querySelector("#saveAccountName").onclick=async()=>{
+    const username=root.querySelector("#settingsUsername").value.trim();
+    if(!username || !/^[A-Za-z0-9_]{3,24}$/.test(username)) return alert("Use 3–24 letters, numbers or underscores.");
+    const {data,error}=await supabaseClient.auth.updateUser({data:{username}});
+    if(error) return alert(error.message);
+    AUTH_USER=data.user; state.profile.username=username; rememberUsernameForEmail(username,email); saveState(); await saveStateToCloud(); render();
+  };
+  root.querySelector("#passwordReset").onclick=async()=>{if(!email)return;const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:"https://chrnorin.github.io/gg4/"});alert(error?error.message:"Password reset email sent.");};
+  root.querySelector("#themeDark").onclick=()=>{state.account.theme="dark";saveState();render();};
+  root.querySelector("#themeLight").onclick=()=>{state.account.theme="light";saveState();render();};
+  root.querySelector("#installAppSettings").onclick=installGoGetta;
+  updateInstallUI(root.querySelector("#installAppSettings"),root.querySelector("#installHintSettings"));
+  root.querySelector("#saveCloudNow").onclick=async()=>{const x=root.querySelector("#cloudSaveStatus");x.textContent="Saving…";await saveStateToCloud();x.textContent="Saved to cloud.";};
+  root.querySelector("#settingsExport").onclick=()=>document.getElementById("exportBtn").click();
+  root.querySelector("#settingsLogout").onclick=logoutUserFn;
+  return root;
+}
+
 function applyTheme(){document.body.classList.toggle("lightMode",state?.account?.theme==="light")}
 
 /* =========================
@@ -5193,6 +5245,7 @@ function render(){
   if (tab==="PROFILE") mainEl.appendChild(screenProfile());
   else if (tab==="COLLECTIONS") mainEl.appendChild(screenCollections());
   else if (tab==="NOTES") mainEl.appendChild(screenNotes());
+  else if (tab==="SETTINGS") mainEl.appendChild(screenSettings());
   else mainEl.appendChild(screenProfile());
 }
 
@@ -5343,64 +5396,68 @@ const SUPABASE_URL = "https://ciztfqtirxxzcbaclqba.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpenRmcXRpcnh4emNiYWNscWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MTQwMDEsImV4cCI6MjEwNjQ5MDAwMX0.KvYd_JmurnrEBPN_LQ2UxQKJwnQQMT33vvAxL-ZzFPo";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function setAuthMessage(message){
-  document.getElementById("loginMsg").innerText = message || "";
+let deferredInstallPrompt=null;
+const LOGIN_NAME_KEY="GG_login_name";
+const LOGIN_MAP_KEY="GG_username_email_map";
+function usernameMap(){try{return JSON.parse(localStorage.getItem(LOGIN_MAP_KEY)||"{}")}catch{return {}}}
+function rememberUsernameForEmail(username,email){if(!username||!email)return;const m=usernameMap();m[username.toLowerCase()]=email.toLowerCase();localStorage.setItem(LOGIN_MAP_KEY,JSON.stringify(m));}
+function setAuthMessage(message){ document.getElementById("loginMsg").innerText=message||""; }
+function showAuthOverlay(show){ document.getElementById("authOverlay").style.display=show?"flex":"none"; }
+function fillRememberedLogin(){const v=localStorage.getItem(LOGIN_NAME_KEY)||"";const i=document.getElementById("loginUser");if(i&&!i.value)i.value=v;}
+function updateInstallUI(btn,hint){
+  if(!btn)return;
+  const standalone=window.matchMedia?.("(display-mode: standalone)").matches||window.navigator.standalone===true;
+  if(standalone){btn.textContent="GOGETTA IS INSTALLED";btn.disabled=true;if(hint)hint.textContent="You are running the installed app.";return;}
+  btn.disabled=false;btn.textContent="INSTALL GOGETTA";
+  if(hint) hint.textContent=deferredInstallPrompt?"Ready to install on this device.":(/iPhone|iPad|iPod/.test(navigator.userAgent)?"On iPhone/iPad: use Safari Share → Add to Home Screen.":"If no install prompt appears, use your browser's Install/Add to Home Screen option.");
 }
-function showAuthOverlay(show){
-  document.getElementById("authOverlay").style.display = show ? "flex" : "none";
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;updateInstallUI(document.getElementById("installAppLogin"),document.getElementById("installHintLogin"));});
+window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;updateInstallUI(document.getElementById("installAppLogin"),document.getElementById("installHintLogin"));});
+async function installGoGetta(){
+  if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return;}
+  if(/iPhone|iPad|iPod/.test(navigator.userAgent)) alert("On iPhone/iPad, open GoGetta in Safari, tap Share, then Add to Home Screen.");
+  else alert("Use your browser menu and choose Install app or Add to Home Screen. The direct install button appears automatically when your browser offers it.");
 }
 async function registerUserFn(){
-  const email = document.getElementById("loginUser").value.trim();
-  const password = document.getElementById("loginPass").value;
-  if (!email || !password){ setAuthMessage("Enter your email and password."); return; }
+  const username=document.getElementById("loginUser").value.trim();
+  const email=document.getElementById("registerEmail").value.trim().toLowerCase();
+  const password=document.getElementById("loginPass").value;
+  if(!/^[A-Za-z0-9_]{3,24}$/.test(username)){setAuthMessage("Choose a username using 3–24 letters, numbers or underscores.");return;}
+  if(!email||!password){setAuthMessage("For registration, enter username, email and password.");return;}
   setAuthMessage("Creating account…");
-  const { data, error } = await supabaseClient.auth.signUp({
-    email, password,
-    options: { emailRedirectTo: "https://chrnorin.github.io/gg4/" }
-  });
-  if (error){ setAuthMessage(error.message); return; }
-  if (data.session){
-    setAuthMessage("Account created.");
-    await loadCloudStateForUser(data.user);
-    showAuthOverlay(false);
-  } else {
-    setAuthMessage("Account created. Check your email and confirm it, then return here and log in.");
-  }
+  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:"https://chrnorin.github.io/gg4/",data:{username}}});
+  if(error){setAuthMessage(error.message);return;}
+  rememberUsernameForEmail(username,email);
+  if(document.getElementById("rememberLogin").checked)localStorage.setItem(LOGIN_NAME_KEY,username);
+  if(data.session){AUTH_USER=data.user;state.profile.username=username;await loadCloudStateForUser(data.user);state.profile.username=username;saveState();await saveStateToCloud();showAuthOverlay(false);setAuthMessage("Account created.");}
+  else setAuthMessage("Account created. Check your email and confirm it, then return here and log in.");
 }
 async function loginUserFn(){
-  const email = document.getElementById("loginUser").value.trim();
-  const password = document.getElementById("loginPass").value;
-  if (!email || !password){ setAuthMessage("Enter your email and password."); return; }
+  const identifier=document.getElementById("loginUser").value.trim();
+  const password=document.getElementById("loginPass").value;
+  if(!identifier||!password){setAuthMessage("Enter your username/email and password.");return;}
+  let email=identifier.includes("@")?identifier.toLowerCase():usernameMap()[identifier.toLowerCase()];
+  if(!email){setAuthMessage("This device does not know that username yet. Log in once with your email; after that your username is remembered here.");return;}
   setAuthMessage("Logging in…");
-  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error){ setAuthMessage(error.message); return; }
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error){setAuthMessage(error.message);return;}
+  const username=data.user?.user_metadata?.username||identifier;
+  if(username&&!username.includes("@"))rememberUsernameForEmail(username,email);
+  if(document.getElementById("rememberLogin").checked)localStorage.setItem(LOGIN_NAME_KEY,username||identifier);else localStorage.removeItem(LOGIN_NAME_KEY);
   await loadCloudStateForUser(data.user);
-  showAuthOverlay(false);
-  setAuthMessage("");
+  if(data.user?.user_metadata?.username && state.profile.username==="Player"){state.profile.username=data.user.user_metadata.username;saveState();}
+  showAuthOverlay(false);setAuthMessage("");
 }
 async function logoutUserFn(){
-  await saveStateToCloud();
-  await supabaseClient.auth.signOut();
-  AUTH_USER = null; CURRENT_USER = null;
-  localStorage.removeItem("GG_user");
-  showAuthOverlay(true);
-  setAuthMessage("Logged out.");
+  await saveStateToCloud();await supabaseClient.auth.signOut();AUTH_USER=null;CURRENT_USER=null;localStorage.removeItem("GG_user");showAuthOverlay(true);fillRememberedLogin();setAuthMessage("Logged out.");
 }
 async function initLogin(){
-  showAuthOverlay(true);
-  setAuthMessage("Checking session…");
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error){ setAuthMessage(error.message); return; }
-  const user = data.session?.user || null;
-  if (user){
-    await loadCloudStateForUser(user);
-    showAuthOverlay(false);
-    setAuthMessage("");
-  } else {
-    setAuthMessage("");
-  }
+  showAuthOverlay(true);fillRememberedLogin();updateInstallUI(document.getElementById("installAppLogin"),document.getElementById("installHintLogin"));setAuthMessage("Checking session…");
+  const {data,error}=await supabaseClient.auth.getSession();if(error){setAuthMessage(error.message);return;}const user=data.session?.user||null;
+  if(user){const un=user.user_metadata?.username;if(un)rememberUsernameForEmail(un,user.email||"");await loadCloudStateForUser(user);showAuthOverlay(false);setAuthMessage("");}else setAuthMessage("");
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(err=>console.warn("Service worker registration failed",err));
 }
-
+document.getElementById("installAppLogin").onclick=installGoGetta;
 supabaseClient.auth.onAuthStateChange((event, session)=>{
   if (event === "SIGNED_OUT") showAuthOverlay(true);
 });

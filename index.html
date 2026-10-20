@@ -2896,7 +2896,7 @@ function todayTimelineHtml(){
 }
 function placeTodayTimelineEvents(root,day){
   const timeline=root.querySelector("#todayTimeline");
-  const fm=root.querySelector("#finishedTimelineEvents");if(fm){const es=state.completionEvents.filter(ev=>ev.day===dayKey);if(!es.length)fm.appendChild(el(`<div class="muted">No finished habits or missions.</div>`));for(const ev of es){const r=el(`<div class="item timelineEvent"><div class="row sp wrap"><div><b>${escapeHtml(ev.title)}</b><div class="meta">${escapeHtml(ev.kind)} • +${ev.xp} XP</div></div><button class="btn small">Proof</button></div></div>`);r.querySelector("button").onclick=()=>openCompletionEvidence(ev);fm.appendChild(r)}}
+  const fm=root.querySelector("#finishedTimelineEvents");if(fm){const es=state.completionEvents.filter(ev=>ev.day===day);if(!es.length)fm.appendChild(el(`<div class="muted">No finished habits or missions.</div>`));for(const ev of es){const r=el(`<div class="item timelineEvent"><div class="row sp wrap"><div><b>${escapeHtml(ev.title)}</b><div class="meta">${escapeHtml(ev.kind)} • +${ev.xp} XP</div></div><button class="btn small">Proof</button></div></div>`);r.querySelector("button").onclick=()=>openCompletionEvidence(ev);fm.appendChild(r)}}
   const total=24*60;
   for(const a of onlyDay(state.today.activities,day)){
     const s=minutesFromTime(a.start), e=minutesFromTime(a.end);

@@ -429,7 +429,8 @@
     .legendList{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
     .legendItem{display:flex;gap:8px;align-items:center}
   
-    body.lightMode{--bg:#f4f5f7;--panel:#fff;--card:#fff;--card2:#f7f7f9;--text:#17171b;--muted:#666b75;--line:#d8dbe2;--shadow:0 14px 40px rgba(0,0,0,.10)}
+    body.lightMode{--bg:#f4f5f7;--panel:#fff;--card:#fff;--card2:#f1f3f7;--txt:#171923;--text:#171923;--muted:#505768;--line:#c5cbd6;--chip:#e6eaf1;--accent:#3569bb;--shadow:0 14px 40px rgba(0,0,0,.10)}
+body.lightMode header{background:rgba(244,245,247,.96)}body.lightMode input,body.lightMode select,body.lightMode textarea{background:#fff;color:#171923}body.lightMode .strategicNode,body.lightMode .todayEvent{background:#fff}body.lightMode .authCard{background:#fff;color:#171923}body.lightMode .xpbar{background:#e4e8ee}
     .nutChip{font-weight:950;border:1px solid var(--line);border-radius:999px;padding:6px 9px;background:var(--card2)}
     .donkeyNut{color:#ff5b5b;border-color:#8d3030}
     .specialMission{border-left:6px solid #eb5757!important;background:linear-gradient(90deg,rgba(235,87,87,.12),var(--card2))!important}
@@ -492,6 +493,7 @@
       <div class="brand">GoGetta GG</div>
       <div class="row">
         <button class="btn small ghost" id="notesBtnTop">Notes</button>
+        <button class="btn small ghost" id="settingsBtnTop" onclick="setTab('SETTINGS')">Settings</button>
         <button class="btn small ghost" id="exportBtn">Export</button>
         <button class="btn small ghost" id="importBtn">Import</button>
         <button class="btn small ghost" id="copyDataBtn">Copy Data</button>
@@ -860,16 +862,6 @@ function loadState(){
   try{
     let raw = localStorage.getItem(getStoreKey());
 
-    // Older builds loaded the save before the logged-in username was known.
-    // Recover that save and migrate it into the correct user-specific slot.
-    if (!raw && CURRENT_USER){
-      const legacyRaw = localStorage.getItem(BASE_STORE_KEY);
-      if (legacyRaw){
-        raw = legacyRaw;
-        localStorage.setItem(getStoreKey(), legacyRaw);
-      }
-    }
-
     if (!raw) return defaultState();
     const st = JSON.parse(raw);
 
@@ -916,7 +908,8 @@ function loadState(){
         code:m.code, name:m.name, color:SKILL_COLOR[m.code] || "#7d8590"
       }));
     }
-    MAINSKILLS.splice(0, MAINSKILLS.length, ...st.customMainskills.map(m=>({code:m.code,name:m.name})));
+    if(!Array.isArray(st.customMainskills) || !st.customMainskills.length) throw new Error("Invalid mainskill definitions");
+    MAINSKILLS.splice(0, MAINSKILLS.length, ...st.customMainskills.filter(m=>m&&typeof m.code==="string").map(m=>({code:m.code,name:m.name||m.code})));
     for (const k of Object.keys(SKILL_COLOR)) delete SKILL_COLOR[k];
     for (const m of st.customMainskills) SKILL_COLOR[m.code] = m.color || "#7d8590";
 
@@ -1085,14 +1078,18 @@ function loadState(){
     }
 
     return st;
-  }catch{
-    return defaultState();
+  }catch(e){
+    console.error("GoGetta local save could not be parsed",e);
+    throw e;
   }
 }
 
-let state = loadState();
+let state;try{state=loadState();}catch(e){state=defaultState();}
 let cloudSaveTimer = null;
+let CLOUD_READY = false;
+let CLOUD_LOAD_ERROR = null;
 function saveState(){
+  if (!CLOUD_READY || !AUTH_USER) return;
   localStorage.setItem(getStoreKey(), JSON.stringify(state));
   if (AUTH_USER){
     clearTimeout(cloudSaveTimer);
@@ -1101,7 +1098,7 @@ function saveState(){
 }
 
 async function saveStateToCloud(){
-  if (!AUTH_USER) return;
+  if (!AUTH_USER || !CLOUD_READY) return;
   const { error } = await supabaseClient.from("user_saves").upsert({
     user_id: AUTH_USER.id,
     save_data: state,
@@ -1111,43 +1108,34 @@ async function saveStateToCloud(){
 }
 
 async function loadCloudStateForUser(user){
-  AUTH_USER = user;
-  CURRENT_USER = user.id;
-  localStorage.setItem("GG_user", user.id);
-
-  const { data, error } = await supabaseClient
-    .from("user_saves")
-    .select("save_data,updated_at")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (error){
-    console.error("GoGetta cloud load failed:", error);
-    state = loadState();
-    render();
-    return;
+  CLOUD_READY=false;
+  clearTimeout(cloudSaveTimer);
+  AUTH_USER=user;
+  CURRENT_USER=user.id;
+  localStorage.setItem("GG_user",user.id);
+  const {data,error}=await supabaseClient.from("user_saves").select("save_data,updated_at").eq("user_id",user.id).maybeSingle();
+  if(error) throw new Error("Cloud load failed: "+error.message+". No save was overwritten.");
+  if(data?.save_data){
+    // Keep the original cloud JSON intact even if migration/rendering fails.
+    localStorage.setItem(getStoreKey()+"_cloud_backup",JSON.stringify(data.save_data));
+    localStorage.setItem(getStoreKey(),JSON.stringify(data.save_data));
+    state=loadState();
+    if(!state || !state.ui || !Array.isArray(state.missions)) throw new Error("Invalid save format. Original cloud data is preserved.");
+  }else{
+    // NEVER migrate another account's local data into a new account.
+    state=defaultState();
+    localStorage.setItem(getStoreKey(),JSON.stringify(state));
   }
-
-  if (data?.save_data){
-    localStorage.setItem(getStoreKey(), JSON.stringify(data.save_data));
-    state = loadState();
-  } else {
-    // First Supabase login: migrate an existing local GoGetta save when available.
-    let migrationRaw = null;
-    if (LEGACY_LOCAL_USER && LEGACY_LOCAL_USER !== user.id){
-      migrationRaw = localStorage.getItem(BASE_STORE_KEY + "_" + LEGACY_LOCAL_USER);
-    }
-    migrationRaw ||= localStorage.getItem(BASE_STORE_KEY);
-    if (migrationRaw){
-      localStorage.setItem(getStoreKey(), migrationRaw);
-      state = loadState();
-    } else {
-      state = defaultState();
-      localStorage.setItem(getStoreKey(), JSON.stringify(state));
-    }
-    await saveStateToCloud();
-  }
+  // Rendering is validated before cloud writes are enabled.
   render();
+  CLOUD_READY=true;
+  if(!data?.save_data) await saveStateToCloud();
+}
+function showLoginRecovery(err){
+  CLOUD_READY=false;
+  console.error("GoGetta account load failed",err);
+  setAuthMessage("Account data could not be opened: "+(err?.message||String(err))+". Your cloud save has NOT been overwritten. Export a backup from Supabase before changing your save.");
+  showAuthOverlay(true);
 }
 
 /* =========================
@@ -1247,7 +1235,9 @@ function addXpFlow(mainCode, nodeId, delta, dayOverride=null){
 
   rememberMain(mainCode);
   let rememberId=nodeId;
-  while(rememberId){
+  const seenRemember=new Set();
+  while(rememberId && !seenRemember.has(rememberId)){
+    seenRemember.add(rememberId);
     rememberNode(rememberId);
     rememberId=state.subskills[rememberId]?.parentId||null;
   }
@@ -1265,7 +1255,9 @@ function addXpFlow(mainCode, nodeId, delta, dayOverride=null){
   state.skills[mainCode].totalXp = Math.max(0, (state.skills[mainCode].totalXp||0) + delta);
 
   let curId = nodeId;
-  while (curId){
+  const seenXp=new Set();
+  while (curId && !seenXp.has(curId)){
+    seenXp.add(curId);
     const n = state.subskills[curId];
     if (!n) break;
     n.totalXp = Math.max(0, (n.totalXp||0) + delta);
@@ -1463,10 +1455,7 @@ function openNotesForCurrentPage(){ openNotesModalFor(currentPageNoteMeta()); }
    TABS
 ========================= */
 const TABS = [
-  { id:"PROFILE", label:"PROFILE" },
   { id:"COLLECTIONS", label:"COLLECTIONS" },
-  { id:"NOTES", label:"NOTES" },
-  { id:"SETTINGS", label:"SETTINGS" },
 ];
 
 
@@ -1474,7 +1463,7 @@ const COLLECTIONS = {
   MAIN: {
     label:"MAIN",
     pages:[
-      ["TODAY","Today"],["TOMORROW","Tomorrow"],["TODOLIST","To-do"],
+      ["PROFILE","Profile"],["TODAY","Today"],["TOMORROW","Tomorrow"],["TODOLIST","To-do"],
       ["PRIORITIES","Priorities"],["GOALS","Goals"],["CHECKLISTS","Checklists"]
     ]
   },
@@ -1545,7 +1534,7 @@ function renderTabs(){
   for (const t of TABS){
     const b = document.createElement("button");
     b.className = "tab" + (state.ui.activeTab===t.id ? " active" : "");
-    b.textContent = t.label;
+    b.textContent = t.id==="COLLECTIONS" ? "Home" : t.label;
     b.onclick = ()=> setTab(t.id);
     tabsEl.appendChild(b);
   }
@@ -1947,6 +1936,7 @@ function openEditSubskillModal(nodeId){
     render();
   };
 
+  const moveButton=el(`<button class="btn" id="moveTree">Move subskill tree</button>`);body.querySelector("#addChild").parentElement.appendChild(moveButton);moveButton.onclick=()=>{closeModal();openMoveSubskill(n.id);};
   body.querySelector("#addChild").onclick = ()=>{ closeModal(); openAddSubskillModal(n.mainCode, n.id); };
   body.querySelector("#addTodo").onclick=()=>{
     const todoBody=el(`
@@ -3062,6 +3052,7 @@ function screenToday(){
   }
 
   placeTodayTimelineEvents(root,day);
+  root.appendChild(screenDailyJournal(day));
   return root;
 }
 
@@ -3347,6 +3338,7 @@ function screenMainSkillDetail(mainCode){
           <div class="row wrap">
             <button class="btn primary" id="pageNotes">Notes</button>
             <button class="btn ok" id="addTop">+ Top subskill</button>
+            <button class="btn" id="bulkSub">+ Bulk subskills</button>
             <button class="btn ok" id="addGoal">+ Goal</button>
           </div>
         </div>
@@ -3369,6 +3361,16 @@ function screenMainSkillDetail(mainCode){
     </div>
   `);
 
+  const jump=el(`<div class="card"><div class="row wrap" id="mainJump"></div></div>`);
+  orderedMainskills().forEach(ms=>{const b=el(`<button class="btn small ${ms.code===mainCode?"primary":""}">${escapeHtml(ms.name)}</button>`);b.onclick=()=>{state.ui.selectedMain=ms.code;state.ui.selectedNode=null;saveState();render();};jump.querySelector("#mainJump").appendChild(b);});
+  root.insertBefore(jump,root.firstChild);
+  const sidebar=el(`<div class="card"><div class="row sp wrap"><h3 style="margin:0">Subskills</h3><select id="subSort"><option value="alpha">A–Z</option><option value="created">Created</option></select></div><div class="list" id="subNav" style="max-height:400px;overflow:auto;margin-top:10px"></div></div>`);
+  sidebar.querySelector("#subSort").value=state.ui.subskillSort||"alpha";
+  sidebar.querySelector("#subSort").onchange=e=>{state.ui.subskillSort=e.target.value;saveState();render();};
+  let ordered=nodesForMain(mainCode);
+  if((state.ui.subskillSort||"alpha")==="alpha")ordered.sort((a,b)=>a.name.localeCompare(b.name));
+  ordered.forEach(n=>{const b=el(`<button class="btn small" style="text-align:left">${escapeHtml(n.name)}</button>`);b.onclick=()=>{state.ui.selectedNode=n.id;saveState();openEditSubskillModal(n.id);};sidebar.querySelector("#subNav").appendChild(b);});
+  root.appendChild(sidebar);
   root.querySelector("#pageNotes").onclick = openNotesForCurrentPage;
 
   root.querySelector("#back").onclick = ()=>{
@@ -3377,6 +3379,7 @@ function screenMainSkillDetail(mainCode){
     saveState(); render();
   };
   root.querySelector("#addTop").onclick = ()=> openAddSubskillModal(mainCode, null);
+  root.querySelector("#bulkSub").onclick=()=>openBulkSubskills(mainCode);
   root.querySelector("#addGoal").onclick = ()=> openAddGoalModal(mainCode, state.ui.selectedNode);
 
   root.querySelectorAll("[data-sub]").forEach(btn=>{
@@ -5046,6 +5049,7 @@ function applyTheme(){document.body.classList.toggle("lightMode",state?.account?
    COLLECTIONS
 ========================= */
 function collectionContent(page){
+  if(page==="PROFILE") return screenProfile();
   if(page==="TODAY"||page==="TOMORROW") return screenToday();
   if(page==="TODOLIST") return screenTodoList();
   if(page==="PRIORITIES") return screenPriorities();
@@ -5112,6 +5116,7 @@ function screenFitness(){
   const root=el(`<div class="grid"><div id="topMount"></div><div class="card"><div class="row sp wrap"><h3 style="margin:0">Fitness & Recovery</h3><button class="btn ok" id="fitnessActivity">+ Activity</button></div><div class="hr"></div><div class="list" id="fitnessList"></div></div></div>`);
   root.querySelector("#topMount").appendChild(pageHeaderWithNotes({kicker:"Body",title:"Fitness",subtitle:"Physical and recovery activities for the selected day."}));
   root.querySelector("#fitnessActivity").onclick=()=>openTodayActivityModal(day,false);
+  const training=screenTrainingLog(day);root.appendChild(training);
   const list=root.querySelector("#fitnessList");
   if(!acts.length) list.appendChild(el(`<div class="muted">No Physical or Recovery activities logged for this day.</div>`));
   for(const a of acts) list.appendChild(el(`<div class="item"><div class="row sp wrap"><div><b>${escapeHtml(a.name||"Activity")}</b><div class="meta">${escapeHtml(a.mainCode||"")}</div></div><span class="chip">${Number(a.effort)||0} effort</span></div></div>`));
@@ -5339,8 +5344,6 @@ document.getElementById("notesBtnTop").onclick = ()=>{
 render();
 
 /* ===== CHECKLISTS ===== */
-state.checklists ||= [];
-
 function renderChecklists(){
   return `
     <div class="card">
@@ -5389,6 +5392,30 @@ function toggleTask(i,ti,ok){
   saveState(); render(); openChecklist(i);
 }
 
+
+/* ===== GoGetta extended journal, training, and tree management ===== */
+function openBulkSubskills(mainCode){
+ const b=el(`<div class="grid"><p class="muted">One subskill per line. Select a parent or use Main skill for top-level subskills.</p><select id="bulkParent"><option value="">Main skill</option>${nodesForMain(mainCode).map(n=>`<option value="${escapeHtml(n.id)}">${escapeHtml(n.name)}</option>`).join("")}</select><textarea id="bulkNames" rows="9" placeholder="Reading&#10;Research&#10;Writing"></textarea><div class="row"><button class="btn ok" id="bulkSave">Create all</button><button class="btn" id="bulkCancel">Cancel</button></div></div>`);
+ b.querySelector("#bulkCancel").onclick=closeModal;
+ b.querySelector("#bulkSave").onclick=()=>{const names=[...new Set(b.querySelector("#bulkNames").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean))];if(!names.length)return alert("Enter subskill names, one per line.");const parent=b.querySelector("#bulkParent").value||null;for(const name of names)ensureSubskill(mainCode,name,parent);saveState();closeModal();render();};openModal("Bulk create subskills",b);
+}
+function reparentSubskill(nodeId,newParentId){
+ const n=state.subskills[nodeId];if(!n)return false;
+ if(newParentId){const parent=state.subskills[newParentId];if(!parent||parent.mainCode!==n.mainCode)return false;let cur=newParentId;const seen=new Set();while(cur){if(cur===nodeId||seen.has(cur))return false;seen.add(cur);cur=state.subskills[cur]?.parentId||null;}}
+ n.parentId=newParentId||null;saveState();render();return true;
+}
+function openMoveSubskill(nodeId){const n=state.subskills[nodeId];if(!n)return;const b=el(`<div class="grid"><p>Move <b>${escapeHtml(n.name)}</b> and its descendants under:</p><select id="moveTarget"><option value="">Main skill (top level)</option>${nodesForMain(n.mainCode).filter(x=>x.id!==n.id).map(x=>`<option value="${escapeHtml(x.id)}">${escapeHtml(x.name)}</option>`).join("")}</select><div class="row"><button class="btn ok" id="moveSave">Move tree</button><button class="btn" id="moveCancel">Cancel</button></div></div>`);b.querySelector("#moveCancel").onclick=closeModal;b.querySelector("#moveSave").onclick=()=>{if(!reparentSubskill(nodeId,b.querySelector("#moveTarget").value))return alert("Invalid move: cannot move a subskill beneath its own descendant.");closeModal();};openModal("Move subskill tree",b);}
+function dailyJournalRecord(day){state.dailyJournals ||= {};return state.dailyJournals[day] ||= {diary:"",more:"",less:"",how:"",planner:"",awarded:{}};}
+function screenDailyJournal(day){
+ const r=dailyJournalRecord(day);const root=el(`<div class="card"><div class="row sp wrap"><div><div class="kicker">Daily reflection</div><h3>Diary · Gratitude · Daily planner</h3></div><span class="chip">Up to 3 LEA XP / day</span></div><div class="grid cols3"><div class="field"><b>Diary</b><textarea id="journalDiary" placeholder="What happened today?"></textarea><button class="btn ok" data-save="diary">Save diary (+1 LEA XP once)</button></div><div class="field"><b>Gratitude & direction</b><label>What I want more of</label><textarea id="journalMore"></textarea><label>What I want less of</label><textarea id="journalLess"></textarea><label>How to get there</label><textarea id="journalHow"></textarea><button class="btn ok" data-save="gratitude">Save reflection (+1 LEA XP once)</button></div><div class="field"><b>Daily planner</b><textarea id="journalPlanner" placeholder="My plan for the day..."></textarea><button class="btn ok" data-save="planner">Save planner (+1 LEA XP once)</button><button class="btn" id="todayMission">Today I'll → Mission</button><button class="btn" id="tomorrowMission">Tomorrow I'll → Mission</button></div></div></div>`);
+ const fields={diary:"journalDiary",more:"journalMore",less:"journalLess",how:"journalHow",planner:"journalPlanner"};for(const [key,id] of Object.entries(fields))root.querySelector("#"+id).value=r[key]||"";
+ root.querySelectorAll("[data-save]").forEach(btn=>btn.onclick=()=>{for(const [key,id] of Object.entries(fields))r[key]=root.querySelector("#"+id).value;const kind=btn.dataset.save;const valid=kind==="diary"?r.diary.trim():kind==="planner"?r.planner.trim():(r.more+r.less+r.how).trim();if(!valid)return alert("Write an entry before saving.");if(!r.awarded[kind]){r.awarded[kind]=true;addXpFlow("LEA",null,1,day);}saveState();render();});
+ root.querySelector("#todayMission").onclick=()=>openDailyMission(todayKey());root.querySelector("#tomorrowMission").onclick=()=>openDailyMission(tomorrowKey());return root;
+}
+function openDailyMission(day){const b=el(`<div class="grid"><div class="field"><label>Mission</label><input id="dailyMissionTitle" placeholder="Today I'll..."></div><div class="field"><label>Mainskill</label><select id="dailyMissionMain">${orderedMainskills().map(m=>`<option value="${m.code}">${escapeHtml(m.name)}</option>`).join("")}</select></div><div class="field"><label>Subskill</label><select id="dailyMissionSub"></select></div><div class="row"><button class="btn ok" id="dailyMissionSave">Create mission</button><button class="btn" id="dailyMissionCancel">Cancel</button></div></div>`);const refresh=()=>{const code=b.querySelector("#dailyMissionMain").value;b.querySelector("#dailyMissionSub").innerHTML='<option value="">Main skill</option>'+nodesForMain(code).map(n=>`<option value="${escapeHtml(n.id)}">${escapeHtml(n.name)}</option>`).join("");};b.querySelector("#dailyMissionMain").onchange=refresh;refresh();b.querySelector("#dailyMissionCancel").onclick=closeModal;b.querySelector("#dailyMissionSave").onclick=()=>{const title=b.querySelector("#dailyMissionTitle").value.trim();if(!title)return alert("Mission title required.");const mainCode=b.querySelector("#dailyMissionMain").value;state.missions.unshift({id:cryptoId(),title,desc:"",mainCode,nodeId:b.querySelector("#dailyMissionSub").value||null,points:0,maxReps:1,dueISO:new Date(day+"T12:00:00").toISOString(),createdAt:new Date().toISOString(),checklist:[],completedOnce:false});saveState();closeModal();render();};openModal("Mission for "+day,b);}
+const TRAINING_SUGGESTIONS=["Bench press","Squat","Deadlift","Overhead press","Lat pulldown","Leg press","Leg curl","Chest fly","Cable row","Dumbbell curl","Triceps pushdown","Pull-up","Push-up","Running","Walking","Stair climbing","Cycling","Swimming","Boxing","Stretching"];
+function screenTrainingLog(day){state.trainingLog ||= [];state.exerciseLibrary ||= [];const entries=state.trainingLog.filter(x=>x.day===day);const root=el(`<div class="card"><div class="row sp wrap"><h3>Training log · ${escapeHtml(day)}</h3><button class="btn ok" id="trainingAdd">+ Log exercise</button></div><div class="list" id="trainingList"></div></div>`);const list=root.querySelector("#trainingList");if(!entries.length)list.innerHTML='<div class="muted">No exercises logged for this day.</div>';entries.forEach(x=>{const item=el(`<div class="item"><div class="row sp wrap"><div><b>${escapeHtml(x.exercise)}</b><div class="meta">${escapeHtml(x.machine||"")} · ${escapeHtml(x.technique||"")} · ${Number(x.sets)||0} sets × ${Number(x.reps)||0} reps · ${Number(x.weight)||0} kg · ${Number(x.minutes)||0} min · ${Number(x.distance)||0} km</div></div><button class="btn bad small">Remove</button></div></div>`);item.querySelector("button").onclick=()=>{state.trainingLog=state.trainingLog.filter(y=>y.id!==x.id);saveState();render();};list.appendChild(item);});root.querySelector("#trainingAdd").onclick=()=>{const b=el(`<div class="grid"><div class="field"><label>Exercise</label><input id="exName" list="exLibrary" placeholder="Choose or type your own"><datalist id="exLibrary">${[...new Set([...TRAINING_SUGGESTIONS,...state.exerciseLibrary])].map(x=>`<option value="${escapeHtml(x)}"></option>`).join("")}</datalist></div><div class="grid cols2">${[["machine","Machine / equipment"],["technique","Technique"],["sets","Sets"],["reps","Reps"],["weight","Weight (kg)"],["minutes","Time (minutes)"],["distance","Distance (km)"]].map(([id,label])=>`<div class="field"><label>${label}</label><input id="ex_${id}" ${["sets","reps","weight","minutes","distance"].includes(id)?'type="number" min="0" step="any"':''}></div>`).join("")}</div><div class="row"><button class="btn ok" id="exSave">Save exercise</button><button class="btn" id="exCancel">Cancel</button></div></div>`);b.querySelector("#exCancel").onclick=closeModal;b.querySelector("#exSave").onclick=()=>{const exercise=b.querySelector("#exName").value.trim();if(!exercise)return alert("Exercise name required.");const x={id:cryptoId(),day,exercise};for(const key of ["machine","technique","sets","reps","weight","minutes","distance"]){const value=b.querySelector("#ex_"+key).value;x[key]=["sets","reps","weight","minutes","distance"].includes(key)?Number(value)||0:value.trim();}state.trainingLog.push(x);if(!state.exerciseLibrary.includes(exercise))state.exerciseLibrary.push(exercise);saveState();closeModal();render();};openModal("Training entry",b);};return root;}
+
 </script>
 
 <script>
@@ -5429,7 +5456,7 @@ async function registerUserFn(){
   if(error){setAuthMessage(error.message);return;}
   rememberUsernameForEmail(username,email);
   if(document.getElementById("rememberLogin").checked)localStorage.setItem(LOGIN_NAME_KEY,username);
-  if(data.session){AUTH_USER=data.user;state.profile.username=username;await loadCloudStateForUser(data.user);state.profile.username=username;saveState();await saveStateToCloud();showAuthOverlay(false);setAuthMessage("Account created.");}
+  if(data.session){try{await loadCloudStateForUser(data.user);state.profile.username=username;saveState();showAuthOverlay(false);setAuthMessage("Account created.");}catch(e){showLoginRecovery(e);}}
   else setAuthMessage("Account created. Check your email and confirm it, then return here and log in.");
 }
 async function loginUserFn(){
@@ -5439,22 +5466,22 @@ async function loginUserFn(){
   let email=identifier.includes("@")?identifier.toLowerCase():usernameMap()[identifier.toLowerCase()];
   if(!email){setAuthMessage("This device does not know that username yet. Log in once with your email; after that your username is remembered here.");return;}
   setAuthMessage("Logging in…");
-  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  let data,error;try{({data,error}=await supabaseClient.auth.signInWithPassword({email,password}));}catch(e){setAuthMessage("Login network error: "+e.message);return;}
   if(error){setAuthMessage(error.message);return;}
   const username=data.user?.user_metadata?.username||identifier;
   if(username&&!username.includes("@"))rememberUsernameForEmail(username,email);
   if(document.getElementById("rememberLogin").checked)localStorage.setItem(LOGIN_NAME_KEY,username||identifier);else localStorage.removeItem(LOGIN_NAME_KEY);
-  await loadCloudStateForUser(data.user);
+  try{await loadCloudStateForUser(data.user);}catch(e){showLoginRecovery(e);return;}
   if(data.user?.user_metadata?.username && state.profile.username==="Player"){state.profile.username=data.user.user_metadata.username;saveState();}
   showAuthOverlay(false);setAuthMessage("");
 }
 async function logoutUserFn(){
-  await saveStateToCloud();await supabaseClient.auth.signOut();AUTH_USER=null;CURRENT_USER=null;localStorage.removeItem("GG_user");showAuthOverlay(true);fillRememberedLogin();setAuthMessage("Logged out.");
+  await saveStateToCloud();CLOUD_READY=false;clearTimeout(cloudSaveTimer);await supabaseClient.auth.signOut();AUTH_USER=null;CURRENT_USER=null;state=defaultState();localStorage.removeItem("GG_user");showAuthOverlay(true);fillRememberedLogin();setAuthMessage("Logged out.");
 }
 async function initLogin(){
   showAuthOverlay(true);fillRememberedLogin();updateInstallUI(document.getElementById("installAppLogin"),document.getElementById("installHintLogin"));setAuthMessage("Checking session…");
   const {data,error}=await supabaseClient.auth.getSession();if(error){setAuthMessage(error.message);return;}const user=data.session?.user||null;
-  if(user){const un=user.user_metadata?.username;if(un)rememberUsernameForEmail(un,user.email||"");await loadCloudStateForUser(user);showAuthOverlay(false);setAuthMessage("");}else setAuthMessage("");
+  if(user){const un=user.user_metadata?.username;if(un)rememberUsernameForEmail(un,user.email||"");try{await loadCloudStateForUser(user);showAuthOverlay(false);setAuthMessage("");}catch(e){showLoginRecovery(e);}}else setAuthMessage("");
   if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(err=>console.warn("Service worker registration failed",err));
 }
 document.getElementById("installAppLogin").onclick=installGoGetta;

@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="GoGetta" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <title>GoGetta GG · Patch 1.4</title>
+  <title>GoGetta GG · Patch 1.5</title>
 
   <style>
     :root{
@@ -2918,6 +2918,7 @@ function todayTimelineHtml(){
 function placeTodayTimelineEvents(root,day){
   const timeline=root.querySelector("#todayTimeline");
   const fm=root.querySelector("#finishedTimelineEvents");if(fm){const es=state.completionEvents.filter(ev=>ev.day===day);if(!es.length)fm.appendChild(el(`<div class="muted">No finished habits or missions.</div>`));for(const ev of es){const r=el(`<div class="item timelineEvent"><div class="row sp wrap"><div><b>${escapeHtml(ev.title)}</b><div class="meta">${escapeHtml(ev.kind)} • +${ev.xp} XP</div></div><button class="btn small">Proof</button></div></div>`);r.querySelector("button").onclick=()=>openCompletionEvidence(ev);fm.appendChild(r)}}
+  if(!timeline)return;
   const total=24*60;
   for(const a of onlyDay(state.today.activities,day)){
     const s=minutesFromTime(a.start), e=minutesFromTime(a.end);
@@ -2944,7 +2945,7 @@ function skillsUsedOnDay(day){
 function screenPaintSchedule(day){
  state.paintedSchedule ||= [];
  const entries=state.paintedSchedule.filter(x=>x.day===day);
- const root=el(`<div class="card"><div class="row sp wrap"><div><h3>Paint your schedule</h3><div class="hint">Choose a skill. Drag empty space to paint; drag a block to move it; drag its bottom handle to resize. Click a block to edit its details; double-click to confirm. Use the ✓ button to confirm on touch devices. Painted blocks are schedule records, not automatic XP rewards.</div></div><button class="btn" id="paintHelp">How to use</button><button class="btn" id="paintNextHours">↓ Later hours</button><button class="btn" id="paintStartDay">↑ 00:00</button></div><div class="paintLayout"><div class="paintSkills" id="paintSkills"></div><div class="paintScroll" tabindex="0" aria-label="24-hour schedule; scroll to see later hours"><div class="paintCanvas" id="paintCanvas"></div></div></div></div>`);
+ const root=el(`<div class="card"><div class="row sp wrap"><div><h3>Paint your schedule</h3><div class="hint">Choose a skill. Drag empty space to paint; drag a block to move it; drag its bottom handle to resize. Tap a block to edit; double-click on desktop or press and hold on phone to confirm. The ✓ button also confirms. Painted blocks are schedule records, not automatic XP rewards.</div></div><button class="btn" id="paintHelp">How to use</button><button class="btn" id="paintNextHours">↓ Later hours</button><button class="btn" id="paintStartDay">↑ 00:00</button></div><div class="paintLayout"><div class="paintSkills" id="paintSkills"></div><div class="paintScroll" tabindex="0" aria-label="24-hour schedule; scroll to see later hours"><div class="paintCanvas" id="paintCanvas"></div></div></div></div>`);
  const skills=root.querySelector("#paintSkills"),canvas=root.querySelector("#paintCanvas");
  let chosen=state.ui.paintMain||MAINSKILLS[0]?.code;
  orderedMainskills().forEach(m=>{const btn=el(`<button class="btn small" style="border-left:5px solid ${SKILL_COLOR[m.code]||'#777'}">${escapeHtml(m.name)}</button>`);btn.onclick=()=>{chosen=m.code;state.ui.paintMain=m.code;saveState();skills.querySelectorAll("button").forEach(b=>b.classList.remove("primary"));btn.classList.add("primary")};if(m.code===chosen)btn.classList.add("primary");skills.appendChild(btn)});
@@ -2959,11 +2960,13 @@ function screenPaintSchedule(day){
   block.querySelector('.paintEditAction').onclick=e=>{e.stopPropagation();edit()};
   block.querySelector('.paintConfirmAction').onclick=e=>{e.stopPropagation();toggleDone()};
   block.querySelector('.paintDelete').onclick=e=>{e.stopPropagation();if(confirm('Delete this schedule block?')){state.paintedSchedule=state.paintedSchedule.filter(y=>y.id!==x.id);entries.splice(entries.indexOf(x),1);saveState();draw()}};
-  let gesture=null,clickTimer=null;
-  block.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;e.stopPropagation();block.dataset.dragged='0';gesture={y:e.clientY,start:x.start,end:x.end,resize:e.target.classList.contains('paintResize'),moved:false};block.setPointerCapture(e.pointerId)});
-  block.addEventListener('pointermove',e=>{if(!gesture||Math.abs(e.clientY-gesture.y)<7)return;gesture.moved=true;block.dataset.dragged='1';const delta=Math.round((e.clientY-gesture.y)/30)*15;if(gesture.resize)x.end=Math.max(x.start+15,Math.min(1440,gesture.end+delta));else{const dur=gesture.end-gesture.start;x.start=Math.max(0,Math.min(1440-dur,gesture.start+delta));x.end=x.start+dur}block.style.top=x.start*2+'px';block.style.height=Math.max(30,(x.end-x.start)*2)+'px';block.querySelector('.paintText').textContent=(x.activity||x.mainCode)+' · '+fmt(x.start)+'–'+fmt(x.end)+(x.done?' ✓':'')});
-  block.addEventListener('pointerup',()=>{if(!gesture)return;const moved=gesture.moved;gesture=null;if(moved){saveState();draw()}});
-  block.addEventListener('click',e=>{if(e.target.closest('button')||e.target.classList.contains('paintResize')||block.dataset.dragged==='1')return;if(e.detail>=2){clearTimeout(clickTimer);clickTimer=null;block.dataset.doubleHandled='1';toggleDone()}else{clearTimeout(clickTimer);clickTimer=setTimeout(()=>{clickTimer=null;edit()},300)}});
+  let gesture=null,clickTimer=null,holdTimer=null,holdTriggered=false;
+  block.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;e.stopPropagation();block.dataset.dragged='0';holdTriggered=false;clearTimeout(holdTimer);if(e.pointerType==='touch'||e.pointerType==='pen'){holdTimer=setTimeout(()=>{if(gesture&&!gesture.moved){holdTriggered=true;block.dataset.dragged='1';gesture=null;clearTimeout(clickTimer);clickTimer=null;toggleDone()}},650)}gesture={y:e.clientY,start:x.start,end:x.end,resize:e.target.classList.contains('paintResize'),moved:false};block.setPointerCapture(e.pointerId)});
+  block.addEventListener('pointermove',e=>{if(!gesture||Math.abs(e.clientY-gesture.y)<7)return;gesture.moved=true;clearTimeout(holdTimer);block.dataset.dragged='1';const delta=Math.round((e.clientY-gesture.y)/30)*15;if(gesture.resize)x.end=Math.max(x.start+15,Math.min(1440,gesture.end+delta));else{const dur=gesture.end-gesture.start;x.start=Math.max(0,Math.min(1440-dur,gesture.start+delta));x.end=x.start+dur}block.style.top=x.start*2+'px';block.style.height=Math.max(30,(x.end-x.start)*2)+'px';block.querySelector('.paintText').textContent=(x.activity||x.mainCode)+' · '+fmt(x.start)+'–'+fmt(x.end)+(x.done?' ✓':'')});
+  block.addEventListener('pointerup',()=>{clearTimeout(holdTimer);if(!gesture)return;const moved=gesture.moved;gesture=null;if(moved){saveState();draw()}});
+  block.addEventListener('pointercancel',()=>{clearTimeout(holdTimer);gesture=null});
+  block.addEventListener('contextmenu',e=>{if(holdTriggered)e.preventDefault()});
+  block.addEventListener('click',e=>{if(holdTriggered){holdTriggered=false;return}if(e.target.closest('button')||e.target.classList.contains('paintResize')||block.dataset.dragged==='1')return;if(e.detail>=2){clearTimeout(clickTimer);clickTimer=null;block.dataset.doubleHandled='1';toggleDone()}else{clearTimeout(clickTimer);clickTimer=setTimeout(()=>{clickTimer=null;edit()},300)}});
   block.addEventListener('dblclick',e=>{e.preventDefault();clearTimeout(clickTimer);clickTimer=null;if(block.dataset.doubleHandled!=='1')toggleDone();block.dataset.doubleHandled='0'});
   canvas.appendChild(block)
  })}
@@ -2971,7 +2974,7 @@ function screenPaintSchedule(day){
  canvas.addEventListener('pointermove',e=>{if(!paint)return;paint.end=Math.max(paint.start+15,pos(e));let ghost=canvas.querySelector('.paintGhost');if(!ghost){ghost=el('<div class="paintGhost"></div>');canvas.appendChild(ghost)}ghost.style.top=paint.start*2+'px';ghost.style.height=(paint.end-paint.start)*2+'px';ghost.style.background=SKILL_COLOR[chosen]||'#66a3ff'});
  canvas.addEventListener('pointerup',e=>{if(!paint)return;const start=paint.start,end=Math.min(1440,Math.max(start+15,paint.end));paint=null;canvas.querySelector('.paintGhost')?.remove();const x={id:cryptoId(),day,mainCode:chosen,start,end,done:false,activity:''};state.paintedSchedule.push(x);entries.push(x);saveState();draw()});
  root.querySelector('#paintNextHours').onclick=()=>{root.querySelector('.paintScroll').scrollBy({top:600,behavior:'smooth'})};root.querySelector('#paintStartDay').onclick=()=>{root.querySelector('.paintScroll').scrollTo({top:0,behavior:'smooth'})};
- root.querySelector('#paintHelp').onclick=()=>alert('Select a skill on the left, then drag on the timeline. Click a block to edit its activity and notes. Double-click to confirm, drag to move, drag the bottom edge to resize. Tap × to remove. No XP is awarded for painting or logging activities.');
+ root.querySelector('#paintHelp').onclick=()=>alert('Select a skill on the left, then drag on the timeline. Click a block to edit its activity and notes. Double-click on desktop or hold on phone to confirm, drag to move, drag the bottom edge to resize. Tap × to remove. No XP is awarded for painting or logging activities.');
  draw();return root;
 }
 
@@ -3021,11 +3024,6 @@ function screenToday(){
             </div>
           </div>
 
-          <div class="card">
-            <h3 style="margin-top:0">${isToday?"Today's":"Day"} timeline</h3>
-            <div class="todayTimeline" id="todayTimeline">${todayTimelineHtml()}</div>
-          <div class="card" style="margin-top:10px"><div class="title">Finished events</div><div class="list" id="finishedTimelineEvents" style="margin-top:8px"></div></div>
-          </div>
         </div>
 
         <div class="grid">
@@ -3034,14 +3032,7 @@ function screenToday(){
             <div class="hr"></div>
             <div class="todayFeed" id="todayFeed"></div>
           </div>
-          <div class="todayMiniCharts">
-            ${usedSkills.length ? usedSkills.map(skill=>{
-              const val=state.xpLog.filter(x=>x.day===day&&x.mainCode===skill.code).reduce((s,x)=>s+(Number(x.delta)||0),0);
-              const activityCount=acts.filter(a=>a.mainCode===skill.code).length;
-              const h=Math.max(4,Math.min(100,val*10 || activityCount*18));
-              return `<div class="todayMiniChart"><div class="kicker">${escapeHtml(skill.code)} — ${escapeHtml(skill.name)}</div><div class="todayBars"><div class="todayBarWrap"><div class="todayBar" style="height:${h}px;--skill-color:${SKILL_COLOR[skill.code]||"#66a3ff"}"></div>${val} XP<br>${activityCount} activit${activityCount===1?"y":"ies"}</div></div></div>`;
-            }).join("") : `<div class="todayMiniChart"><div class="muted">Skills appear here automatically when they are used in an activity or earn XP on this day.</div></div>`}
-          </div>
+
         </div>
       </div>
     </div>
@@ -5185,7 +5176,7 @@ function collectionContent(page){
 function screenCollections(){
   const coll=COLLECTIONS[state.ui.collection]||COLLECTIONS.MAIN;
   if(!coll.pages.some(([id])=>id===state.ui.collectionPage)) state.ui.collectionPage=coll.pages[0][0];
-  const root=el(`<div class="grid"><div class="card"><div class="row sp wrap"><strong>Welcome to GG · Patch 1.4</strong><span class="muted" style="font-size:12px">Updated 22 Oct 2026 · direct priorities and to-dos</span></div><div class="hr"></div><div class="collectionNav" id="collectionNav"></div><div class="collectionPages" id="collectionPages"></div></div><div id="collectionMount"></div></div>`);
+  const root=el(`<div class="grid"><div class="card"><div class="row sp wrap"><strong>Welcome to GG · Patch 1.5</strong><span class="muted" style="font-size:12px">Updated 22 Oct 2026 · schedule cleanup and long-press</span></div><div class="hr"></div><div class="collectionNav" id="collectionNav"></div><div class="collectionPages" id="collectionPages"></div></div><div id="collectionMount"></div></div>`);
   const nav=root.querySelector("#collectionNav");
   Object.entries(COLLECTIONS).forEach(([id,c])=>{
     const b=el(`<button class="btn ${state.ui.collection===id?"active":""}">${escapeHtml(c.label)}</button>`);

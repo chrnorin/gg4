@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="GoGetta" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <title>GoGetta GG · Patch 1.3</title>
+  <title>GoGetta GG · Patch 1.4</title>
 
   <style>
     :root{
@@ -4766,6 +4766,18 @@ function openPriorityItem(p){
   saveState();
   render();
 }
+function openCreatePriorityModal(){
+ const body=el(`<div class="grid" style="gap:10px"><div class="field"><label>Priority</label><input id="priorityTitle" placeholder="What matters most?"></div><div class="field"><label>Mainskill (optional)</label><select id="priorityMain"><option value="">Unassigned</option>${orderedMainskills().map(m=>`<option value="${m.code}">${escapeHtml(m.name)}</option>`).join("")}</select></div><div class="row wrap"><button class="btn ok" id="prioritySave">Add priority</button><button class="btn" id="priorityCancel">Cancel</button></div></div>`);
+ body.querySelector('#priorityCancel').onclick=closeModal;
+ body.querySelector('#prioritySave').onclick=()=>{const title=body.querySelector('#priorityTitle').value.trim();if(!title)return alert('Enter a priority.');const id=cryptoId();state.priorities.unshift({key:priorityKey('custom',id),kind:'custom',id,title,mainCode:body.querySelector('#priorityMain').value,route:{},createdAt:new Date().toISOString()});saveState();closeModal();render()};
+ openModal('Add priority',body);body.querySelector('#priorityTitle').focus();
+}
+function openCreateTodoModal(){
+ const body=el(`<div class="grid" style="gap:10px"><div class="field"><label>To-do</label><input id="todoTitle" placeholder="What needs doing?"></div><div class="field"><label>Mainskill (optional)</label><select id="todoMain"><option value="">Unassigned</option>${orderedMainskills().map(m=>`<option value="${m.code}">${escapeHtml(m.name)}</option>`).join("")}</select></div><div class="field"><label>List</label><select id="todoList"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="custom">Custom list</option></select></div><div class="field"><label>Custom list name</label><input id="todoCustom" placeholder="e.g. Weekend"></div><div class="field"><label>Due date (optional)</label><input type="date" id="todoDue"></div><div class="row wrap"><button class="btn ok" id="todoSave">Add to-do</button><button class="btn" id="todoCancel">Cancel</button></div></div>`);
+ body.querySelector('#todoCancel').onclick=closeModal;
+ body.querySelector('#todoSave').onclick=()=>{const title=body.querySelector('#todoTitle').value.trim();if(!title)return alert('Enter a to-do.');const listType=body.querySelector('#todoList').value;state.todos.push({id:cryptoId(),title,nodeId:null,mainCode:body.querySelector('#todoMain').value,listType,customLabel:listType==='custom'?(body.querySelector('#todoCustom').value.trim()||'Custom'):'',dueDay:body.querySelector('#todoDue').value,done:false,xpAwarded:false,createdAt:new Date().toISOString(),completedAt:''});saveState();closeModal();render()};
+ openModal('Add to-do',body);body.querySelector('#todoTitle').focus();
+}
 function screenPriorities(){
   const root=el(`
     <div class="grid">
@@ -4773,7 +4785,7 @@ function screenPriorities(){
       <div class="card">
         <div class="row sp wrap">
           <h3 style="margin:0">Starred priorities</h3>
-          <span class="chip">${state.priorities.length} starred</span>
+          <div class="row wrap"><span class="chip">${state.priorities.length} starred</span><button class="btn ok" id="newPriority">+ Priority</button></div>
         </div>
         <div class="hr"></div>
         <div class="list" id="priorityList"></div>
@@ -4783,8 +4795,9 @@ function screenPriorities(){
   root.querySelector("#topMount").appendChild(pageHeaderWithNotes({
     kicker:"Priorities",
     title:"Your starred bubbles",
-    subtitle:"Press ★ on a mainskill, subskill, mission, habit, goal, or checklist to place it here."
+    subtitle:"Add priorities directly, or star a mainskill, subskill, mission, habit, goal, or checklist."
   }));
+  root.querySelector("#newPriority").onclick=openCreatePriorityModal;
   const list=root.querySelector("#priorityList");
   if(!state.priorities.length){
     list.appendChild(el(`<div class="muted">Nothing starred yet.</div>`));
@@ -4805,7 +4818,7 @@ function screenPriorities(){
         </div>
       </div>
     `);
-    row.onclick=()=>openPriorityItem(p);
+    row.onclick=()=>{if(p.kind==="custom")openCreatePriorityModal();else openPriorityItem(p)};
     row.querySelector(".removePriority").onclick=e=>{
       e.stopPropagation();
       state.priorities=state.priorities.filter(x=>x.key!==p.key);
@@ -4933,14 +4946,14 @@ function toggleTodoDone(todo){
   if(!todo.done){
     todo.done=true;
     todo.completedAt=new Date().toISOString();
-    if(!todo.xpAwarded){
+    if(!todo.xpAwarded && todo.nodeId && todo.mainCode){
       addXpFlow(todo.mainCode,todo.nodeId,+1,todo.dueDay||todayKey());
       todo.xpAwarded=true;
     }
   }else{
     todo.done=false;
     todo.completedAt="";
-    if(todo.xpAwarded){
+    if(todo.xpAwarded && todo.nodeId && todo.mainCode){
       addXpFlow(todo.mainCode,todo.nodeId,-1,todo.dueDay||todayKey());
       todo.xpAwarded=false;
     }
@@ -5047,15 +5060,16 @@ function screenTodoList(){
   const root=el(`
     <div class="grid">
       <div id="topMount"></div>
-      <div class="todoGroups" id="todoGroups"></div>
+      <div class="card"><div class="row sp wrap"><h3 style="margin:0">Your to-do list</h3><button class="btn ok" id="newTodo">+ To-do</button></div></div><div class="todoGroups" id="todoGroups"></div>
     </div>
   `);
   root.querySelector("#topMount").appendChild(pageHeaderWithNotes({
     kicker:"To-do list",
     title:"Subskill action lists",
-    subtitle:"Add a subskill to Today, Tomorrow, or a custom list. Checking it off gives +1 XP to that subskill."
+    subtitle:"Add a subskill to Today, Tomorrow, or a custom list. Subskill-linked to-dos can earn XP. Standalone to-dos do not award XP."
   }));
 
+  root.querySelector("#newTodo").onclick=openCreateTodoModal;
   const groups=[
     {key:"today",title:"Today",items:state.todos.filter(t=>t.listType==="today")},
     {key:"tomorrow",title:"Tomorrow",items:state.todos.filter(t=>t.listType==="tomorrow")}
@@ -5065,7 +5079,7 @@ function screenTodoList(){
 
   const mount=root.querySelector("#todoGroups");
   if(!state.todos.length){
-    mount.appendChild(el(`<div class="card"><div class="muted">No to-do items yet. Open a subskill and press <b>+ To-do</b>.</div></div>`));
+    mount.appendChild(el(`<div class="card"><div class="muted">No to-do items yet. Press <b>+ To-do</b> above.</div></div>`));
     return root;
   }
 
@@ -5086,7 +5100,7 @@ function screenTodoList(){
             <div class="meta">
               <span class="chip" style="border-color:${SKILL_COLOR[todo.mainCode]||"#777"}">${escapeHtml(todo.mainCode)} — ${escapeHtml(mainskillName(todo.mainCode))}</span>
               ${todo.dueDay?`<span class="chip">${escapeHtml(todo.dueDay)}</span>`:""}
-              <span class="chip">+1 XP</span>
+              ${todo.nodeId?`<span class="chip">+1 XP</span>`:`<span class="chip">No XP</span>`}
             </div>
           </div>
         </div>
@@ -5171,7 +5185,7 @@ function collectionContent(page){
 function screenCollections(){
   const coll=COLLECTIONS[state.ui.collection]||COLLECTIONS.MAIN;
   if(!coll.pages.some(([id])=>id===state.ui.collectionPage)) state.ui.collectionPage=coll.pages[0][0];
-  const root=el(`<div class="grid"><div class="card"><div class="row sp wrap"><strong>Welcome to GG · Patch 1.3</strong><span class="muted" style="font-size:12px">Updated 22 Oct 2026 · 24-hour schedule fix</span></div><div class="hr"></div><div class="collectionNav" id="collectionNav"></div><div class="collectionPages" id="collectionPages"></div></div><div id="collectionMount"></div></div>`);
+  const root=el(`<div class="grid"><div class="card"><div class="row sp wrap"><strong>Welcome to GG · Patch 1.4</strong><span class="muted" style="font-size:12px">Updated 22 Oct 2026 · direct priorities and to-dos</span></div><div class="hr"></div><div class="collectionNav" id="collectionNav"></div><div class="collectionPages" id="collectionPages"></div></div><div id="collectionMount"></div></div>`);
   const nav=root.querySelector("#collectionNav");
   Object.entries(COLLECTIONS).forEach(([id,c])=>{
     const b=el(`<button class="btn ${state.ui.collection===id?"active":""}">${escapeHtml(c.label)}</button>`);

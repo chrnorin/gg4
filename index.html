@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="GoGetta" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <title>GoGetta GG · Paint Schedule Update</title>
+  <title>GoGetta GG · Patch 1.2</title>
 
   <style>
     :root{
@@ -2944,19 +2944,20 @@ function skillsUsedOnDay(day){
 function screenPaintSchedule(day){
  state.paintedSchedule ||= [];
  const entries=state.paintedSchedule.filter(x=>x.day===day);
- const root=el(`<div class="card"><div class="row sp wrap"><div><h3>Paint your schedule</h3><div class="hint">Choose a skill. Drag empty space to paint; drag a block to move it; drag its bottom handle to resize. Double-tap a block to confirm completion. Painted blocks are schedule records, not automatic XP rewards.</div></div><button class="btn" id="paintHelp">How to use</button></div><div class="paintLayout"><div class="paintSkills" id="paintSkills"></div><div class="paintScroll"><div class="paintCanvas" id="paintCanvas"></div></div></div></div>`);
+ const root=el(`<div class="card"><div class="row sp wrap"><div><h3>Paint your schedule</h3><div class="hint">Choose a skill. Drag empty space to paint; drag a block to move it; drag its bottom handle to resize. Click a block to name the activity; double-tap to confirm completion. Painted blocks are schedule records, not automatic XP rewards.</div></div><button class="btn" id="paintHelp">How to use</button></div><div class="paintLayout"><div class="paintSkills" id="paintSkills"></div><div class="paintScroll"><div class="paintCanvas" id="paintCanvas"></div></div></div></div>`);
  const skills=root.querySelector("#paintSkills"),canvas=root.querySelector("#paintCanvas");
  let chosen=state.ui.paintMain||MAINSKILLS[0]?.code;
  orderedMainskills().forEach(m=>{const btn=el(`<button class="btn small" style="border-left:5px solid ${SKILL_COLOR[m.code]||'#777'}">${escapeHtml(m.name)}</button>`);btn.onclick=()=>{chosen=m.code;state.ui.paintMain=m.code;saveState();skills.querySelectorAll("button").forEach(b=>b.classList.remove("primary"));btn.classList.add("primary")};if(m.code===chosen)btn.classList.add("primary");skills.appendChild(btn)});
  const snap=v=>Math.max(0,Math.min(1440,Math.round(v/15)*15));
  const fmt=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
- const pos=e=>snap((e.clientY-canvas.getBoundingClientRect().top+canvas.parentElement.scrollTop)/2);
+ const pos=e=>snap((e.clientY-canvas.getBoundingClientRect().top)/2);
  for(let h=0;h<24;h++){const label=el(`<div class="paintHour" style="top:${h*120}px">${String(h).padStart(2,'0')}:00</div>`);canvas.appendChild(label)}
  function draw(){canvas.querySelectorAll('.paintBlock').forEach(x=>x.remove());entries.forEach(x=>{
-  const block=el(`<div class="paintBlock ${x.done?'done':''}" style="top:${x.start*2}px;height:${Math.max(30,(x.end-x.start)*2)}px;--paint-color:${SKILL_COLOR[x.mainCode]||'#66a3ff'}"><span class="paintText">${escapeHtml(x.mainCode)} · ${fmt(x.start)}–${fmt(x.end)} ${x.done?'✓':''}</span><button class="paintDelete" title="Delete">×</button><div class="paintResize" title="Drag to resize"></div></div>`);
+  const block=el(`<div class="paintBlock ${x.done?'done':''}" style="top:${x.start*2}px;height:${Math.max(30,(x.end-x.start)*2)}px;--paint-color:${SKILL_COLOR[x.mainCode]||'#66a3ff'}"><span class="paintText">${escapeHtml(x.activity||x.mainCode)} · ${fmt(x.start)}–${fmt(x.end)} ${x.done?'✓':''}</span><button class="paintDelete" title="Delete">×</button><div class="paintResize" title="Drag to resize"></div></div>`);
+  block.addEventListener('click',e=>{if(e.target.closest('button')||e.target.classList.contains('paintResize')||block.dataset.dragged==='1')return;const activity=prompt('Activity for '+x.mainCode+' ('+fmt(x.start)+'–'+fmt(x.end)+'):',x.activity||'');if(activity!==null){x.activity=activity.trim();saveState();draw()}});
   block.querySelector('.paintDelete').onclick=e=>{e.stopPropagation();if(confirm('Delete this schedule block?')){state.paintedSchedule=state.paintedSchedule.filter(y=>y.id!==x.id);entries.splice(entries.indexOf(x),1);saveState();draw()}};
-  let gesture=null;block.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;e.stopPropagation();gesture={y:e.clientY,start:x.start,end:x.end,resize:e.target.classList.contains('paintResize')};block.setPointerCapture(e.pointerId)});
-  block.addEventListener('pointermove',e=>{if(!gesture)return;const delta=Math.round((e.clientY-gesture.y)/30)*15;if(gesture.resize)x.end=Math.max(x.start+15,Math.min(1440,gesture.end+delta));else{const dur=gesture.end-gesture.start;x.start=Math.max(0,Math.min(1440-dur,gesture.start+delta));x.end=x.start+dur}block.style.top=x.start*2+'px';block.style.height=Math.max(30,(x.end-x.start)*2)+'px';block.querySelector('.paintText').textContent=x.mainCode+' · '+fmt(x.start)+'–'+fmt(x.end)+(x.done?' ✓':'')});
+  let gesture=null;block.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;e.stopPropagation();block.dataset.dragged='0';gesture={y:e.clientY,start:x.start,end:x.end,resize:e.target.classList.contains('paintResize')};block.setPointerCapture(e.pointerId)});
+  block.addEventListener('pointermove',e=>{if(!gesture)return;if(Math.abs(e.clientY-gesture.y)>6)block.dataset.dragged='1';const delta=Math.round((e.clientY-gesture.y)/30)*15;if(gesture.resize)x.end=Math.max(x.start+15,Math.min(1440,gesture.end+delta));else{const dur=gesture.end-gesture.start;x.start=Math.max(0,Math.min(1440-dur,gesture.start+delta));x.end=x.start+dur}block.style.top=x.start*2+'px';block.style.height=Math.max(30,(x.end-x.start)*2)+'px';block.querySelector('.paintText').textContent=x.mainCode+' · '+fmt(x.start)+'–'+fmt(x.end)+(x.done?' ✓':'')});
   block.addEventListener('pointerup',()=>{if(gesture){gesture=null;saveState();draw()}});
   block.addEventListener('dblclick',()=>{x.done=!x.done;saveState();draw()});
   let lastTap=0;block.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTap<350){x.done=!x.done;saveState();draw()}lastTap=now},{passive:true});
@@ -2964,8 +2965,8 @@ function screenPaintSchedule(day){
  })}
  let paint=null;canvas.addEventListener('pointerdown',e=>{if(e.target!==canvas)return;const start=Math.min(1425,pos(e));paint={start, end:start+15};canvas.setPointerCapture(e.pointerId)});
  canvas.addEventListener('pointermove',e=>{if(!paint)return;paint.end=Math.max(paint.start+15,pos(e));let ghost=canvas.querySelector('.paintGhost');if(!ghost){ghost=el('<div class="paintGhost"></div>');canvas.appendChild(ghost)}ghost.style.top=paint.start*2+'px';ghost.style.height=(paint.end-paint.start)*2+'px';ghost.style.background=SKILL_COLOR[chosen]||'#66a3ff'});
- canvas.addEventListener('pointerup',e=>{if(!paint)return;const start=paint.start,end=Math.min(1440,Math.max(start+15,paint.end));paint=null;canvas.querySelector('.paintGhost')?.remove();const x={id:cryptoId(),day,mainCode:chosen,start,end,done:false};state.paintedSchedule.push(x);entries.push(x);saveState();draw()});
- root.querySelector('#paintHelp').onclick=()=>alert('Select a skill on the left, then drag on the timeline. Blocks start as faint plans. Double-tap to confirm, drag the middle to move, drag the bottom edge to resize. Tap × to remove.');
+ canvas.addEventListener('pointerup',e=>{if(!paint)return;const start=paint.start,end=Math.min(1440,Math.max(start+15,paint.end));paint=null;canvas.querySelector('.paintGhost')?.remove();const x={id:cryptoId(),day,mainCode:chosen,start,end,done:false,activity:''};state.paintedSchedule.push(x);entries.push(x);saveState();draw()});
+ root.querySelector('#paintHelp').onclick=()=>alert('Select a skill on the left, then drag on the timeline. Click a block to name its activity. Double-tap to confirm, drag to move, drag the bottom edge to resize. Tap × to remove. No XP is awarded for painting or logging activities.');
  draw();return root;
 }
 
@@ -3775,7 +3776,7 @@ function openStandaloneTaskModal(kind){
 }
 
 function screenMissions(){
-  const top = pageHeaderWithNotes({ kicker:"Missions", title:"All missions", subtitle:"Finish gives +1 XP to node + parents + mainskill." });
+  const top = pageHeaderWithNotes({ kicker:"Missions", title:"All missions", subtitle:"Create and track missions here. Schedule activity logging does not award XP." });
 
   const root = el(`
     <div class="grid">
@@ -5165,7 +5166,7 @@ function collectionContent(page){
 function screenCollections(){
   const coll=COLLECTIONS[state.ui.collection]||COLLECTIONS.MAIN;
   if(!coll.pages.some(([id])=>id===state.ui.collectionPage)) state.ui.collectionPage=coll.pages[0][0];
-  const root=el(`<div class="grid"><div class="card"><div class="collectionNav" id="collectionNav"></div><div class="collectionPages" id="collectionPages"></div></div><div id="collectionMount"></div></div>`);
+  const root=el(`<div class="grid"><div class="card"><div class="row sp wrap"><strong>Welcome to GG · Patch 1.2</strong><span class="muted" style="font-size:12px">Updated 22 Oct 2026 · 19:12 CEST</span></div><div class="hr"></div><div class="collectionNav" id="collectionNav"></div><div class="collectionPages" id="collectionPages"></div></div><div id="collectionMount"></div></div>`);
   const nav=root.querySelector("#collectionNav");
   Object.entries(COLLECTIONS).forEach(([id,c])=>{
     const b=el(`<button class="btn ${state.ui.collection===id?"active":""}">${escapeHtml(c.label)}</button>`);
